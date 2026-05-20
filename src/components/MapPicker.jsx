@@ -71,7 +71,7 @@ export default function MapPicker({ position, onSelect, readOnly = false, height
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Rechercher une adresse…"
-              className="flex-1 text-sm text-gray-900 outline-none bg-transparent"
+              className="flex-1 text-base text-gray-900 outline-none bg-transparent"
             />
           </div>
           {results.length > 0 && (
@@ -81,7 +81,7 @@ export default function MapPicker({ position, onSelect, readOnly = false, height
                   key={r.place_id}
                   type="button"
                   onClick={() => handleSelect(r)}
-                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 border-b border-gray-50 last:border-0 transition-colors"
+                  className="w-full text-left px-4 py-3.5 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-700 border-b border-gray-50 last:border-0 transition-colors active:bg-violet-100"
                 >
                   {r.display_name}
                 </button>

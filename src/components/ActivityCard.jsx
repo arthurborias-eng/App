@@ -73,8 +73,15 @@ function DetailModal({ activity, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg my-4 overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm flex flex-col sm:items-center sm:justify-center sm:p-4 sm:overflow-y-auto">
+      <div className="bg-white flex flex-col w-full h-full sm:h-auto sm:rounded-3xl sm:shadow-2xl sm:max-w-lg sm:max-h-[90vh] sm:my-4 overflow-hidden">
+        {/* Mobile header bar */}
+        <div className="sm:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
+          <h2 className="font-bold text-gray-900 truncate pr-4">{activity.name}</h2>
+          <button onClick={onClose} className="p-2 rounded-xl bg-gray-100 text-gray-600 flex-shrink-0">
+            <X size={18} />
+          </button>
+        </div>
         <div className="relative">
           {activity.imageUrl ? (
             <img src={activity.imageUrl} alt={activity.name} className="w-full h-52 object-cover" />
@@ -83,7 +90,7 @@ function DetailModal({ activity, onClose }) {
               {style.emoji}
             </div>
           )}
-          <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors backdrop-blur-sm">
+          <button onClick={onClose} className="hidden sm:flex absolute top-3 right-3 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors backdrop-blur-sm">
             <X size={18} />
           </button>
           {activity.done && (
@@ -93,6 +100,7 @@ function DetailModal({ activity, onClose }) {
           )}
         </div>
 
+        <div className="flex-1 overflow-y-auto">
         <div className="p-5 space-y-4">
           <div>
             <div className="flex items-start justify-between gap-2 mb-2">
@@ -219,6 +227,7 @@ function DetailModal({ activity, onClose }) {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
