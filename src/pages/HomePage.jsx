@@ -6,10 +6,21 @@ import ActivityCard from '../components/ActivityCard'
 import AddActivityModal from '../components/AddActivityModal'
 import { Plus, LogOut, MapPin, CheckCircle2, Clock } from 'lucide-react'
 
+const TYPES = ['all', 'restaurant', 'bar', 'activite', 'lieu', 'autre']
+const TYPE_LABELS = { all: '🗺️ Tout', restaurant: '🍽️ Resto', bar: '🍸 Bar', activite: '🎯 Activité', lieu: '📍 Lieu', autre: '✨ Autre' }
+const TYPE_COLORS = {
+  all: 'from-violet-500 to-indigo-500',
+  restaurant: 'from-orange-500 to-red-500',
+  bar: 'from-purple-500 to-pink-500',
+  activite: 'from-blue-500 to-cyan-500',
+  lieu: 'from-emerald-500 to-teal-500',
+  autre: 'from-gray-500 to-slate-500',
+}
+
 export default function HomePage() {
   const { user, logout } = useAuth()
   const [activities, setActivities] = useState([])
-  const [tab, setTab] = useState('todo') // 'todo' | 'done'
+  const [tab, setTab] = useState('todo')
   const [showAdd, setShowAdd] = useState(false)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -25,10 +36,6 @@ export default function HomePage() {
 
   const todoList = activities.filter((a) => !a.done)
   const doneList = activities.filter((a) => a.done)
-
-  const TYPES = ['all', 'restaurant', 'bar', 'activite', 'lieu', 'autre']
-  const TYPE_LABELS = { all: 'Tout', restaurant: '🍽️', bar: '🍸', activite: '🎯', lieu: '📍', autre: '✨' }
-
   const displayed = (tab === 'todo' ? todoList : doneList)
     .filter((a) => filter === 'all' || a.type === filter)
 
@@ -36,22 +43,21 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <MapPin size={16} className="text-white" />
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+              <MapPin size={17} className="text-white" />
             </div>
-            <span className="font-bold text-gray-900 text-lg">CollabSpots</span>
+            <span className="font-extrabold text-gray-900 text-xl tracking-tight">CollabSpots</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500 hidden sm:block">
-              Salut, <strong className="text-gray-700">{user.displayName || user.email}</strong>
-            </span>
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
-              title="Se déconnecter"
-            >
+            <div className="hidden sm:flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1.5">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">
+                {(user.displayName || user.email)[0].toUpperCase()}
+              </div>
+              <span className="text-sm font-medium text-gray-700">{user.displayName || user.email}</span>
+            </div>
+            <button onClick={logout} className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500" title="Déconnexion">
               <LogOut size={18} />
             </button>
           </div>
@@ -60,31 +66,35 @@ export default function HomePage() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Tabs */}
-        <div className="flex rounded-2xl bg-white shadow-sm border border-gray-100 p-1 mb-6">
+        <div className="flex rounded-2xl bg-white shadow-sm border border-gray-100 p-1.5 mb-5 gap-1">
           <button
             onClick={() => setTab('todo')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${
-              tab === 'todo' ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
+              tab === 'todo'
+                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
             }`}
           >
-            <Clock size={16} />
+            <Clock size={15} />
             À explorer
             {todoList.length > 0 && (
-              <span className={`px-2 py-0.5 rounded-full text-xs ${tab === 'todo' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab === 'todo' ? 'bg-white/25 text-white' : 'bg-violet-100 text-violet-700'}`}>
                 {todoList.length}
               </span>
             )}
           </button>
           <button
             onClick={() => setTab('done')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all ${
-              tab === 'done' ? 'bg-green-600 text-white shadow' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
+              tab === 'done'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
+                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
             }`}
           >
-            <CheckCircle2 size={16} />
+            <CheckCircle2 size={15} />
             Faites
             {doneList.length > 0 && (
-              <span className={`px-2 py-0.5 rounded-full text-xs ${tab === 'done' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab === 'done' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
                 {doneList.length}
               </span>
             )}
@@ -92,36 +102,36 @@ export default function HomePage() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1 scrollbar-hide">
           {TYPES.map((t) => (
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all ${
                 filter === t
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                  ? `bg-gradient-to-r ${TYPE_COLORS[t]} text-white shadow-md scale-105`
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:shadow-sm'
               }`}
             >
-              {TYPE_LABELS[t]} {t !== 'all' && t}
+              {TYPE_LABELS[t]}
             </button>
           ))}
         </div>
 
         {/* Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+          <div className="flex items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
           </div>
         ) : displayed.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">{tab === 'todo' ? '🗺️' : '🏆'}</div>
-            <p className="text-gray-500 text-lg font-medium">
-              {tab === 'todo' ? 'Aucun endroit à explorer' : 'Aucune activité faite'}
+          <div className="text-center py-24">
+            <div className="text-6xl mb-4">{tab === 'todo' ? '🗺️' : '🏆'}</div>
+            <p className="text-gray-600 text-xl font-bold mb-1">
+              {tab === 'todo' ? 'Rien à explorer encore' : 'Aucune activité faite'}
             </p>
-            {tab === 'todo' && (
-              <p className="text-gray-400 text-sm mt-1">Ajoute le premier endroit !</p>
-            )}
+            <p className="text-gray-400 text-sm">
+              {tab === 'todo' ? 'Sois le premier à proposer un endroit !' : 'Marque une activité comme faite pour commencer'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -135,10 +145,10 @@ export default function HomePage() {
       {/* FAB */}
       <button
         onClick={() => setShowAdd(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-40"
-        title="Ajouter un endroit"
+        className="fixed bottom-6 right-6 flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 z-40"
       >
-        <Plus size={28} />
+        <Plus size={20} />
+        <span className="hidden sm:block">Ajouter</span>
       </button>
 
       {showAdd && <AddActivityModal onClose={() => setShowAdd(false)} />}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore'
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 import MapPicker from './MapPicker'
@@ -7,20 +7,16 @@ import StarRating from './StarRating'
 import toast from 'react-hot-toast'
 import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react'
 
-const TYPE_COLORS = {
-  restaurant: 'bg-orange-100 text-orange-700',
-  bar: 'bg-purple-100 text-purple-700',
-  activite: 'bg-blue-100 text-blue-700',
-  lieu: 'bg-green-100 text-green-700',
-  autre: 'bg-gray-100 text-gray-700',
+const TYPE_STYLES = {
+  restaurant: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-400', emoji: '🍽️' },
+  bar: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-400', emoji: '🍸' },
+  activite: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-400', emoji: '🎯' },
+  lieu: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-400', emoji: '📍' },
+  autre: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400', emoji: '✨' },
 }
 
 const TYPE_LABELS = {
-  restaurant: '🍽️ Restaurant',
-  bar: '🍸 Bar',
-  activite: '🎯 Activité',
-  lieu: '📍 Lieu',
-  autre: '✨ Autre',
+  restaurant: 'Restaurant', bar: 'Bar', activite: 'Activité', lieu: 'Lieu', autre: 'Autre',
 }
 
 function DetailModal({ activity, onClose }) {
@@ -30,20 +26,18 @@ function DetailModal({ activity, onClose }) {
   const [submitting, setSubmitting] = useState(false)
   const [showMap, setShowMap] = useState(false)
 
+  const style = TYPE_STYLES[activity.type] || TYPE_STYLES.autre
   const userRating = activity.ratings?.find((r) => r.uid === user.uid)
-  const avgRating =
-    activity.ratings?.length
-      ? (activity.ratings.reduce((s, r) => s + r.value, 0) / activity.ratings.length).toFixed(1)
-      : null
+  const avgRating = activity.ratings?.length
+    ? (activity.ratings.reduce((s, r) => s + r.value, 0) / activity.ratings.length).toFixed(1)
+    : null
 
   const handleMarkDone = async () => {
     try {
       await updateDoc(doc(db, 'activities', activity.id), { done: true })
-      toast.success('Activité marquée comme faite !')
+      toast.success('🎉 Activité marquée comme faite !')
       onClose()
-    } catch {
-      toast.error('Erreur')
-    }
+    } catch { toast.error('Erreur') }
   }
 
   const handleRate = async (e) => {
@@ -62,57 +56,63 @@ function DetailModal({ activity, onClose }) {
           createdAt: new Date().toISOString(),
         }),
       })
-      toast.success('Note ajoutée !')
-      setRating(0)
-      setComment('')
+      toast.success('Avis envoyé !')
       onClose()
-    } catch (err) {
-      toast.error(err.message)
-    } finally {
-      setSubmitting(false)
-    }
+    } catch (err) { toast.error(err.message) }
+    finally { setSubmitting(false) }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-4">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 truncate">{activity.name}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0">
-            <X size={20} />
+    <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg my-4 overflow-hidden">
+        {/* Header image or gradient */}
+        <div className="relative">
+          {activity.imageUrl ? (
+            <img src={activity.imageUrl} alt={activity.name} className="w-full h-52 object-cover" />
+          ) : (
+            <div className={`w-full h-32 bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-6xl`}>
+              {style.emoji}
+            </div>
+          )}
+          <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors backdrop-blur-sm">
+            <X size={18} />
           </button>
+          {activity.done && (
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+              <CheckCircle size={12} /> Fait !
+            </div>
+          )}
         </div>
 
         <div className="p-5 space-y-4">
-          {activity.imageUrl && (
-            <img
-              src={activity.imageUrl}
-              alt={activity.name}
-              className="w-full h-52 object-cover rounded-xl"
-            />
-          )}
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[activity.type] || TYPE_COLORS.autre}`}>
-              {TYPE_LABELS[activity.type] || activity.type}
-            </span>
-            {avgRating && (
-              <span className="text-sm text-amber-600 font-semibold">⭐ {avgRating}/5 ({activity.ratings.length} avis)</span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <User size={14} />
-            <span>Ajouté par <strong className="text-gray-700">{activity.addedBy}</strong></span>
+          <div>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">{activity.name}</h2>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${style.bg} ${style.text} flex-shrink-0`}>
+                {style.emoji} {TYPE_LABELS[activity.type] || activity.type}
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                <User size={13} />
+                <span>{activity.addedBy}</span>
+              </div>
+              {avgRating && (
+                <div className="flex items-center gap-1 text-sm font-semibold text-amber-600">
+                  ⭐ {avgRating}/5
+                  <span className="text-gray-400 font-normal text-xs">({activity.ratings.length} avis)</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {activity.description && (
-            <p className="text-gray-700 text-sm leading-relaxed">{activity.description}</p>
+            <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 rounded-2xl px-4 py-3">{activity.description}</p>
           )}
 
           <button
             onClick={() => setShowMap((v) => !v)}
-            className="flex items-center gap-2 text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors"
+            className="flex items-center gap-2 text-sm text-violet-600 font-semibold hover:text-violet-800 transition-colors"
           >
             <MapPin size={14} />
             {showMap ? 'Masquer la carte' : 'Voir sur la carte'}
@@ -125,55 +125,54 @@ function DetailModal({ activity, onClose }) {
           {!activity.done && (
             <button
               onClick={handleMarkDone}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-2xl shadow-md transition-all hover:scale-[1.02]"
             >
               <CheckCircle size={18} />
-              Marquer comme fait !
+              On l'a fait ! 🎉
             </button>
           )}
 
           {activity.done && (
             <div className="border-t border-gray-100 pt-4 space-y-4">
               {activity.ratings?.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <MessageSquare size={16} />
-                    Avis ({activity.ratings.length})
+                <div className="space-y-2.5">
+                  <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                    <MessageSquare size={15} className="text-violet-500" />
+                    Avis du groupe
                   </h3>
                   {activity.ratings.map((r, i) => (
-                    <div key={i} className="bg-gray-50 rounded-xl p-3">
+                    <div key={i} className="bg-gray-50 rounded-2xl p-3.5">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                        <span className="text-sm font-bold text-gray-900">{r.name}</span>
                         <StarRating value={r.value} readonly size={14} />
                       </div>
-                      {r.comment && <p className="text-sm text-gray-600">{r.comment}</p>}
+                      {r.comment && <p className="text-sm text-gray-500">{r.comment}</p>}
                     </div>
                   ))}
                 </div>
               )}
 
-              {!userRating && (
-                <form onSubmit={handleRate} className="space-y-3">
-                  <h3 className="font-semibold text-gray-900">Laisser un avis</h3>
-                  <StarRating value={rating} onChange={setRating} size={28} />
+              {!userRating ? (
+                <form onSubmit={handleRate} className="space-y-3 bg-violet-50 rounded-2xl p-4">
+                  <h3 className="font-bold text-gray-900">Ton avis</h3>
+                  <StarRating value={rating} onChange={setRating} size={30} />
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={2}
                     placeholder="Ton commentaire (optionnel)…"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 resize-none text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-violet-100 focus:outline-none focus:border-violet-400 text-gray-900 resize-none text-sm bg-white"
                   />
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-xl transition-colors"
+                    className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60 text-white font-bold rounded-xl shadow transition-all"
                   >
-                    {submitting ? 'Envoi…' : 'Envoyer mon avis'}
+                    {submitting ? 'Envoi…' : 'Envoyer mon avis ⭐'}
                   </button>
                 </form>
-              )}
-              {userRating && (
-                <div className="text-center text-sm text-gray-500 py-2">
+              ) : (
+                <div className="text-center text-sm text-gray-400 py-2 bg-gray-50 rounded-2xl">
                   ✓ Tu as déjà noté cet endroit
                 </div>
               )}
@@ -187,7 +186,7 @@ function DetailModal({ activity, onClose }) {
 
 export default function ActivityCard({ activity }) {
   const [open, setOpen] = useState(false)
-
+  const style = TYPE_STYLES[activity.type] || TYPE_STYLES.autre
   const avgRating = activity.ratings?.length
     ? (activity.ratings.reduce((s, r) => s + r.value, 0) / activity.ratings.length).toFixed(1)
     : null
@@ -196,32 +195,46 @@ export default function ActivityCard({ activity }) {
     <>
       <div
         onClick={() => setOpen(true)}
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
       >
         {activity.imageUrl ? (
-          <img src={activity.imageUrl} alt={activity.name} className="w-full h-40 object-cover" />
+          <div className="relative overflow-hidden h-44">
+            <img src={activity.imageUrl} alt={activity.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            {activity.done && (
+              <div className="absolute top-2 left-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                <CheckCircle size={10} /> Fait
+              </div>
+            )}
+          </div>
         ) : (
-          <div className="w-full h-24 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-4xl">
-            {activity.type === 'restaurant' ? '🍽️' : activity.type === 'bar' ? '🍸' : activity.type === 'activite' ? '🎯' : activity.type === 'lieu' ? '📍' : '✨'}
+          <div className="w-full h-24 bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center text-4xl relative">
+            {style.emoji}
+            {activity.done && (
+              <div className="absolute top-2 left-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                <CheckCircle size={10} /> Fait
+              </div>
+            )}
           </div>
         )}
         <div className="p-4">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="font-semibold text-gray-900 text-base leading-tight">{activity.name}</h3>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${TYPE_COLORS[activity.type] || TYPE_COLORS.autre}`}>
-              {TYPE_LABELS[activity.type]?.split(' ')[0]}
+            <h3 className="font-bold text-gray-900 text-base leading-snug">{activity.name}</h3>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0 ${style.bg} ${style.text}`}>
+              {style.emoji}
             </span>
           </div>
           {activity.description && (
-            <p className="text-sm text-gray-500 line-clamp-2 mb-3">{activity.description}</p>
+            <p className="text-xs text-gray-400 line-clamp-2 mb-3 leading-relaxed">{activity.description}</p>
           )}
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <div className="flex items-center gap-1">
-              <User size={12} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-violet-400 to-indigo-400 flex items-center justify-center text-white text-xs font-bold">
+                {activity.addedBy[0].toUpperCase()}
+              </div>
               <span>{activity.addedBy}</span>
             </div>
             {avgRating && (
-              <span className="text-amber-600 font-semibold">⭐ {avgRating}</span>
+              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">⭐ {avgRating}</span>
             )}
           </div>
         </div>

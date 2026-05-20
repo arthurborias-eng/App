@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { MapPin } from 'lucide-react'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState('login') // 'login' | 'register'
+  const [mode, setMode] = useState('login')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,17 +18,17 @@ export default function AuthPage() {
       if (mode === 'register') {
         if (!name.trim()) { toast.error('Entre ton prénom'); setLoading(false); return }
         await register(email, password, name.trim())
-        toast.success('Compte créé !')
+        toast.success('Bienvenue ! 🎉')
       } else {
         await login(email, password)
-        toast.success('Connecté !')
+        toast.success('Content de te revoir !')
       }
     } catch (err) {
       const msgs = {
         'auth/user-not-found': 'Aucun compte avec cet email',
         'auth/wrong-password': 'Mot de passe incorrect',
         'auth/email-already-in-use': 'Email déjà utilisé',
-        'auth/weak-password': 'Mot de passe trop faible (6 caractères min)',
+        'auth/weak-password': 'Mot de passe trop faible (6 car. min)',
         'auth/invalid-credential': 'Email ou mot de passe incorrect',
       }
       toast.error(msgs[err.code] || err.message)
@@ -38,74 +38,80 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-700">
+      {/* Background decorations */}
+      <div className="absolute top-[-80px] left-[-80px] w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-60px] right-[-60px] w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+
+      <div className="w-full max-w-md relative">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <MapPin className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-3xl mb-4 shadow-2xl">
+            <MapPin className="w-10 h-10 text-violet-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">CollabSpots</h1>
-          <p className="text-gray-500 mt-2">Partagez vos endroits préférés</p>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight">CollabSpots</h1>
+          <p className="text-white/70 mt-2 text-lg">Explorez ensemble 🗺️</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          {/* Tab switcher */}
+          <div className="flex bg-gray-50 p-1.5 gap-1">
             <button
               onClick={() => setMode('login')}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'login' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
+              className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all ${mode === 'login' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
             >
               Connexion
             </button>
             <button
               onClick={() => setMode('register')}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${mode === 'register' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
+              className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all ${mode === 'register' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}
             >
               Inscription
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {mode === 'register' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Prénom</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ton prénom"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-violet-400 text-gray-900 bg-gray-50 transition-colors"
                 />
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ton@email.com"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-violet-400 text-gray-900 bg-gray-50 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mot de passe</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-violet-400 text-gray-900 bg-gray-50 transition-colors"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-xl transition-colors mt-2"
+              className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60 text-white font-extrabold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 mt-2"
             >
-              {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+              {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter 🚀' : 'Créer mon compte ✨'}
             </button>
           </form>
         </div>
