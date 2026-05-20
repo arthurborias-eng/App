@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '../firebase'
+import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 import MapPicker from './MapPicker'
 import toast from 'react-hot-toast'
@@ -14,6 +13,19 @@ const TYPES = [
   { value: 'lieu', label: '📍 Lieu' },
   { value: 'autre', label: '✨ Autre' },
 ]
+
+async function uploadToImgbb(file) {
+  const apiKey = import.meta.env.VITE_IMGBB_API_KEY
+  const formData = new FormData()
+  formData.append('image', file)
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    method: 'POST',
+    body: formData,
+  })
+  const data = await res.json()
+  if (!data.success) throw new Error('Échec upload image')
+  return data.data.url
+}
 
 export default function AddActivityModal({ onClose }) {
   const { user } = useAuth()
@@ -41,9 +53,9 @@ export default function AddActivityModal({ onClose }) {
     try {
       let imageUrl = null
       if (imageFile) {
-        const storageRef = ref(storage, `activities/${Date.now()}_${imageFile.name}`)
-        await uploadBytes(storageRef, imageFile)
-        imageUrl = await getDownloadURL(storageRef)
+        toast.loading('Upload de la photo…', { id: 'upload' })
+        imageUrl = await uploadToImgbb(imageFile)
+        toast.dismiss('upload')
       }
       await addDoc(collection(db, 'activities'), {
         name: name.trim(),
@@ -59,6 +71,7 @@ export default function AddActivityModal({ onClose }) {
       toast.success('Activité ajoutée !')
       onClose()
     } catch (err) {
+      toast.dismiss('upload')
       toast.error('Erreur : ' + err.message)
     } finally {
       setLoading(false)
