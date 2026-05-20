@@ -66,6 +66,7 @@ export default function AddActivityModal({ onClose }) {
     if (!name.trim()) { toast.error('Donne un nom à cet endroit'); return }
     if (!position) { toast.error('Indique la localisation'); return }
     setLoading(true)
+    let success = false
     try {
       let imageUrl = null
       if (imageFile) {
@@ -85,12 +86,13 @@ export default function AddActivityModal({ onClose }) {
         createdAt: serverTimestamp(),
       })
       toast.success('Activité ajoutée !')
-      onClose()
+      success = true
     } catch (err) {
       toast.dismiss('upload')
       toast.error('Erreur : ' + err.message)
     } finally {
       setLoading(false)
+      if (success) onClose()
     }
   }
 

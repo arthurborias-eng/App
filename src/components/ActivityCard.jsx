@@ -1,18 +1,18 @@
 import { useState } from 'react'
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { doc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 import MapPicker from './MapPicker'
 import StarRating from './StarRating'
 import toast from 'react-hot-toast'
-import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react'
+import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 
 const TYPE_STYLES = {
-  restaurant: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-400', emoji: '🍽️' },
-  bar: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-400', emoji: '🍸' },
-  activite: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-400', emoji: '🎯' },
-  lieu: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-400', emoji: '📍' },
-  autre: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400', emoji: '✨' },
+  restaurant: { bg: 'bg-orange-100', text: 'text-orange-700', emoji: '🍽️' },
+  bar:        { bg: 'bg-purple-100', text: 'text-purple-700', emoji: '🍸' },
+  activite:   { bg: 'bg-blue-100',   text: 'text-blue-700',   emoji: '🎯' },
+  lieu:       { bg: 'bg-emerald-100', text: 'text-emerald-700', emoji: '📍' },
+  autre:      { bg: 'bg-gray-100',   text: 'text-gray-700',   emoji: '✨' },
 }
 
 const TYPE_LABELS = {
@@ -25,9 +25,11 @@ function DetailModal({ activity, onClose }) {
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showMap, setShowMap] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const style = TYPE_STYLES[activity.type] || TYPE_STYLES.autre
   const userRating = activity.ratings?.find((r) => r.uid === user.uid)
+  const isOwner = activity.addedByUid === user.uid
   const avgRating = activity.ratings?.length
     ? (activity.ratings.reduce((s, r) => s + r.value, 0) / activity.ratings.length).toFixed(1)
     : null
@@ -40,9 +42,16 @@ function DetailModal({ activity, onClose }) {
     } catch { toast.error('Erreur') }
   }
 
+  const handleDelete = async () => {
+    try {
+      await deleteDoc(doc(db, 'activities', activity.id))
+      toast.success('Activité supprimée')
+      onClose()
+    } catch { toast.error('Erreur lors de la suppression') }
+  }
+
   const handleRate = async (e) => {
     e.preventDefault()
-    if (!activity.done) { toast.error("Marque l'activité comme faite d'abord"); return }
     if (rating === 0) { toast.error('Choisis une note'); return }
     if (userRating) { toast.error('Tu as déjà noté cette activité'); return }
     setSubmitting(true)
@@ -65,12 +74,11 @@ function DetailModal({ activity, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg my-4 overflow-hidden">
-        {/* Header image or gradient */}
         <div className="relative">
           {activity.imageUrl ? (
             <img src={activity.imageUrl} alt={activity.name} className="w-full h-52 object-cover" />
           ) : (
-            <div className={`w-full h-32 bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-6xl`}>
+            <div className="w-full h-32 bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-6xl">
               {style.emoji}
             </div>
           )}
@@ -176,6 +184,36 @@ function DetailModal({ activity, onClose }) {
                   ✓ Tu as déjà noté cet endroit
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Delete */}
+          {isOwner && !confirmDelete && (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors border border-dashed border-red-200 hover:border-red-300"
+            >
+              <Trash2 size={14} />
+              Supprimer cette activité
+            </button>
+          )}
+          {isOwner && confirmDelete && (
+            <div className="bg-red-50 rounded-2xl p-4 space-y-3">
+              <p className="text-sm font-semibold text-red-700 text-center">Supprimer définitivement ?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors"
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
           )}
         </div>
