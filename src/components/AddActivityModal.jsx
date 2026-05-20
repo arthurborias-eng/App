@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
-import MapPicker from './MapPicker'
 import toast from 'react-hot-toast'
 import { X, Upload, MapPin } from 'lucide-react'
+
+const MapPicker = lazy(() => import('./MapPicker'))
 
 const TYPES = [
   { value: 'restaurant', label: '🍽️ Restaurant' },
@@ -154,7 +155,9 @@ export default function AddActivityModal({ onClose }) {
               <MapPin size={14} className="text-violet-500" />
               Localisation *
             </label>
-            <MapPicker position={position} onSelect={setPosition} height="220px" />
+            <Suspense fallback={<div className="h-[220px] rounded-xl bg-gray-100 animate-pulse" />}>
+              <MapPicker position={position} onSelect={setPosition} height="220px" />
+            </Suspense>
             {position && (
               <p className="text-xs text-emerald-600 mt-1.5 font-medium">
                 ✓ Position enregistrée

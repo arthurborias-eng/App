@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { doc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
-import MapPicker from './MapPicker'
 import StarRating from './StarRating'
+
+const MapPicker = lazy(() => import('./MapPicker'))
 import toast from 'react-hot-toast'
 import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 
@@ -127,7 +128,9 @@ function DetailModal({ activity, onClose }) {
             {showMap ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
           {showMap && activity.position && (
-            <MapPicker position={activity.position} readOnly height="200px" />
+            <Suspense fallback={<div className="h-[200px] rounded-xl bg-gray-100 animate-pulse" />}>
+              <MapPicker position={activity.position} readOnly height="200px" />
+            </Suspense>
           )}
 
           {!activity.done && (

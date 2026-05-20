@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 import ActivityCard from '../components/ActivityCard'
 import AddActivityModal from '../components/AddActivityModal'
-import DoneMap from '../components/DoneMap'
 import { Plus, LogOut, MapPin, CheckCircle2, Clock, List, Map } from 'lucide-react'
+
+const DoneMap = lazy(() => import('../components/DoneMap'))
 
 const TYPES = ['all', 'restaurant', 'bar', 'activite', 'lieu', 'autre']
 const TYPE_LABELS = { all: '🗺️ Tout', restaurant: '🍽️ Resto', bar: '🍸 Bar', activite: '🎯 Activité', lieu: '📍 Lieu', autre: '✨ Autre' }
@@ -156,7 +157,9 @@ export default function HomePage() {
             <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
           </div>
         ) : tab === 'done' && doneView === 'map' ? (
-          <DoneMap activities={doneList} />
+          <Suspense fallback={<div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" /></div>}>
+            <DoneMap activities={doneList} />
+          </Suspense>
         ) : displayed.length === 0 ? (
           <div className="text-center py-24">
             <div className="text-6xl mb-4">{tab === 'todo' ? '🗺️' : '🏆'}</div>
