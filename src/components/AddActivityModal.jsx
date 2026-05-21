@@ -69,12 +69,7 @@ export default function AddActivityModal({ onClose }) {
     if (!position) { toast.error('Indique la localisation'); return }
     setLoading(true)
     try {
-      let imageUrl = null
-      if (imageFile) {
-        toast.loading('Upload en cours…', { id: 'upload' })
-        imageUrl = await uploadToImgbb(imageFile)
-        toast.dismiss('upload')
-      }
+      const imageUrl = imageFile ? await uploadToImgbb(imageFile) : null
       await addDoc(collection(db, 'activities'), {
         name: name.trim(),
         type,
@@ -86,14 +81,12 @@ export default function AddActivityModal({ onClose }) {
         done: false,
         createdAt: serverTimestamp(),
       })
+      toast.success('Activité ajoutée !')
+      setTimeout(onClose, 0)
     } catch (err) {
-      toast.dismiss('upload')
       toast.error('Erreur : ' + err.message)
       setLoading(false)
-      return
     }
-    toast.success('Activité ajoutée !')
-    onClose()
   }
 
   return (
