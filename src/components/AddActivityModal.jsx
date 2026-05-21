@@ -84,7 +84,8 @@ export default function AddActivityModal({ onClose }) {
       toast.success('Activité ajoutée !')
       onClose()
     } catch (err) {
-      toast.error('Erreur : ' + err.message)
+      console.error('addDoc error:', err)
+      toast.error(`Erreur (${err.code || 'unknown'}): ${err.message}`, { duration: 8000 })
       setLoading(false)
     }
   }
