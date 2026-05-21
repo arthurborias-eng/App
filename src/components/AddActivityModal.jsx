@@ -70,7 +70,7 @@ export default function AddActivityModal({ onClose }) {
     setLoading(true)
     try {
       const imageUrl = imageFile ? await uploadToImgbb(imageFile) : null
-      await addDoc(collection(db, 'activities'), {
+      const writePromise = addDoc(collection(db, 'activities'), {
         name: name.trim(),
         type,
         description: description.trim(),
@@ -81,11 +81,19 @@ export default function AddActivityModal({ onClose }) {
         done: false,
         createdAt: serverTimestamp(),
       })
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 8000)
+      )
+      await Promise.race([writePromise, timeout])
       toast.success('Activité ajoutée !')
       onClose()
     } catch (err) {
-      console.error('addDoc error:', err)
-      toast.error(`Erreur (${err.code || 'unknown'}): ${err.message}`, { duration: 8000 })
+      console.error('addDoc error:', err.code, err.message)
+      if (err.message === 'timeout') {
+        toast.error('Connexion Firestore trop lente — vérifie ta connexion internet', { duration: 8000 })
+      } else {
+        toast.error(`Erreur (${err.code || 'unknown'}): ${err.message}`, { duration: 8000 })
+      }
       setLoading(false)
     }
   }
