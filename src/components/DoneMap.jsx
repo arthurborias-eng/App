@@ -85,11 +85,11 @@ export default function DoneMap({ activities }) {
             >
               <Popup className="custom-popup">
                 <div className="min-w-[180px]">
-                  {a.imageUrl && (
-                    <img src={a.imageUrl} alt={a.name} className="w-full h-28 object-cover rounded-xl mb-2" />
+                  {a.image_url && (
+                    <img src={a.image_url} alt={a.name} className="w-full h-28 object-cover rounded-xl mb-2" />
                   )}
                   <div className="font-bold text-gray-900 text-sm mb-1">{a.name}</div>
-                  <div className="text-xs text-gray-500 mb-1">par {a.addedBy}</div>
+                  <div className="text-xs text-gray-500 mb-1">par {a.added_by}</div>
                   {avgRating(a) && (
                     <div className="flex items-center gap-1">
                       <StarRating value={Math.round(parseFloat(avgRating(a)))} readonly size={12} />

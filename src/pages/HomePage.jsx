@@ -1,6 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
-import { db } from '../firebase'
+import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import ActivityCard from '../components/ActivityCard'
 import AddActivityModal from '../components/AddActivityModal'
@@ -23,25 +22,27 @@ export default function HomePage() {
   const { user, logout } = useAuth()
   const [activities, setActivities] = useState([])
   const [tab, setTab] = useState('todo')
-  const [doneView, setDoneView] = useState('list') // 'list' | 'map'
+  const [doneView, setDoneView] = useState('list')
   const [showAdd, setShowAdd] = useState(false)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 
+  const fetchActivities = async () => {
+    const { data, error } = await supabase
+      .from('activities')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (!error) setActivities(data || [])
+    setLoading(false)
+  }
+
   useEffect(() => {
-    const q = query(collection(db, 'activities'), orderBy('createdAt', 'desc'))
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        setActivities(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-        setLoading(false)
-      },
-      (err) => {
-        console.error('Firestore:', err.message)
-        setLoading(false)
-      }
-    )
-    return unsub
+    fetchActivities()
+    const channel = supabase
+      .channel('activities-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities' }, fetchActivities)
+      .subscribe()
+    return () => channel.unsubscribe()
   }, [])
 
   const todoList = activities.filter((a) => !a.done)
@@ -51,7 +52,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -75,14 +75,11 @@ export default function HomePage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-4 pb-28">
-        {/* Main tabs */}
         <div className="flex rounded-2xl bg-white shadow-sm border border-gray-100 p-1.5 mb-5 gap-1">
           <button
             onClick={() => setTab('todo')}
             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
-              tab === 'todo'
-                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md'
-                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              tab === 'todo' ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
             }`}
           >
             <Clock size={15} />
@@ -96,9 +93,7 @@ export default function HomePage() {
           <button
             onClick={() => setTab('done')}
             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
-              tab === 'done'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
-                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              tab === 'done' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
             }`}
           >
             <CheckCircle2 size={15} />
@@ -111,27 +106,18 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Done sub-nav: Liste / Carte */}
         {tab === 'done' && (
           <div className="flex items-center justify-between mb-4">
             <div className="flex rounded-xl bg-white border border-gray-200 p-1 gap-1 shadow-sm">
               <button
                 onClick={() => setDoneView('list')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  doneView === 'list'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow'
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${doneView === 'list' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}
               >
                 <List size={14} /> Liste
               </button>
               <button
                 onClick={() => setDoneView('map')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  doneView === 'map'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow'
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${doneView === 'map' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}
               >
                 <Map size={14} /> Carte
               </button>
@@ -139,7 +125,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Filters — hidden in map view */}
         {!(tab === 'done' && doneView === 'map') && (
           <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
             {TYPES.map((t) => (
@@ -147,9 +132,7 @@ export default function HomePage() {
                 key={t}
                 onClick={() => setFilter(t)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all ${
-                  filter === t
-                    ? `bg-gradient-to-r ${TYPE_COLORS[t]} text-white shadow-md scale-105`
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  filter === t ? `bg-gradient-to-r ${TYPE_COLORS[t]} text-white shadow-md scale-105` : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
                 {TYPE_LABELS[t]}
@@ -158,7 +141,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Content */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
@@ -186,7 +168,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* FAB */}
       <button
         onClick={() => setShowAdd(true)}
         className="fixed bottom-6 right-5 sm:right-6 flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 z-40"

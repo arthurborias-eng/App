@@ -1,12 +1,11 @@
 import { useState, lazy, Suspense } from 'react'
-import { doc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore'
-import { db } from '../firebase'
+import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import StarRating from './StarRating'
-
-const MapPicker = lazy(() => import('./MapPicker'))
 import toast from 'react-hot-toast'
 import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+
+const MapPicker = lazy(() => import('./MapPicker'))
 
 const TYPE_STYLES = {
   restaurant: { bg: 'bg-orange-100', text: 'text-orange-700', emoji: '🍽️' },
@@ -30,14 +29,15 @@ function DetailModal({ activity, onClose }) {
 
   const style = TYPE_STYLES[activity.type] || TYPE_STYLES.autre
   const userRating = activity.ratings?.find((r) => r.uid === user.uid)
-  const isOwner = activity.addedByUid === user.uid
+  const isOwner = activity.added_by_uid === user.uid
   const avgRating = activity.ratings?.length
     ? (activity.ratings.reduce((s, r) => s + r.value, 0) / activity.ratings.length).toFixed(1)
     : null
 
   const handleMarkDone = async () => {
     try {
-      await updateDoc(doc(db, 'activities', activity.id), { done: true })
+      const { error } = await supabase.from('activities').update({ done: true }).eq('id', activity.id)
+      if (error) throw error
       toast.success('🎉 Activité marquée comme faite !')
       onClose()
     } catch { toast.error('Erreur') }
@@ -45,7 +45,8 @@ function DetailModal({ activity, onClose }) {
 
   const handleDelete = async () => {
     try {
-      await deleteDoc(doc(db, 'activities', activity.id))
+      const { error } = await supabase.from('activities').delete().eq('id', activity.id)
+      if (error) throw error
       toast.success('Activité supprimée')
       onClose()
     } catch { toast.error('Erreur lors de la suppression') }
@@ -57,15 +58,15 @@ function DetailModal({ activity, onClose }) {
     if (userRating) { toast.error('Tu as déjà noté cette activité'); return }
     setSubmitting(true)
     try {
-      await updateDoc(doc(db, 'activities', activity.id), {
-        ratings: arrayUnion({
-          uid: user.uid,
-          name: user.displayName || user.email,
-          value: rating,
-          comment: comment.trim(),
-          createdAt: new Date().toISOString(),
-        }),
-      })
+      const newRatings = [...(activity.ratings || []), {
+        uid: user.uid,
+        name: user.displayName,
+        value: rating,
+        comment: comment.trim(),
+        createdAt: new Date().toISOString(),
+      }]
+      const { error } = await supabase.from('activities').update({ ratings: newRatings }).eq('id', activity.id)
+      if (error) throw error
       toast.success('Avis envoyé !')
       onClose()
     } catch (err) { toast.error(err.message) }
@@ -75,7 +76,6 @@ function DetailModal({ activity, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm flex flex-col sm:items-center sm:justify-center sm:p-4 sm:overflow-y-auto">
       <div className="bg-white flex flex-col w-full h-full sm:h-auto sm:rounded-3xl sm:shadow-2xl sm:max-w-lg sm:max-h-[90vh] sm:my-4 overflow-hidden">
-        {/* Mobile header bar */}
         <div className="sm:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
           <h2 className="font-bold text-gray-900 truncate pr-4">{activity.name}</h2>
           <button onClick={onClose} className="p-2 rounded-xl bg-gray-100 text-gray-600 flex-shrink-0">
@@ -83,8 +83,8 @@ function DetailModal({ activity, onClose }) {
           </button>
         </div>
         <div className="relative">
-          {activity.imageUrl ? (
-            <img src={activity.imageUrl} alt={activity.name} className="w-full h-52 object-cover" />
+          {activity.image_url ? (
+            <img src={activity.image_url} alt={activity.name} className="w-full h-52 object-cover" />
           ) : (
             <div className="w-full h-32 bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-6xl">
               {style.emoji}
@@ -112,7 +112,7 @@ function DetailModal({ activity, onClose }) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5 text-sm text-gray-500">
                 <User size={13} />
-                <span>{activity.addedBy}</span>
+                <span>{activity.added_by}</span>
               </div>
               {avgRating && (
                 <div className="flex items-center gap-1 text-sm font-semibold text-amber-600">
@@ -198,7 +198,6 @@ function DetailModal({ activity, onClose }) {
             </div>
           )}
 
-          {/* Delete */}
           {isOwner && !confirmDelete && (
             <button
               onClick={() => setConfirmDelete(true)}
@@ -212,16 +211,10 @@ function DetailModal({ activity, onClose }) {
             <div className="bg-red-50 rounded-2xl p-4 space-y-3">
               <p className="text-sm font-semibold text-red-700 text-center">Supprimer définitivement ?</p>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setConfirmDelete(false)}
-                  className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                >
+                <button onClick={() => setConfirmDelete(false)} className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors">
                   Annuler
                 </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors"
-                >
+                <button onClick={handleDelete} className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-colors">
                   Supprimer
                 </button>
               </div>
@@ -247,9 +240,9 @@ export default function ActivityCard({ activity }) {
         onClick={() => setOpen(true)}
         className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
       >
-        {activity.imageUrl ? (
+        {activity.image_url ? (
           <div className="relative overflow-hidden h-44">
-            <img src={activity.imageUrl} alt={activity.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <img src={activity.image_url} alt={activity.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             {activity.done && (
               <div className="absolute top-2 left-2 flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
                 <CheckCircle size={10} /> Fait
@@ -279,9 +272,9 @@ export default function ActivityCard({ activity }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-violet-400 to-indigo-400 flex items-center justify-center text-white text-xs font-bold">
-                {activity.addedBy[0].toUpperCase()}
+                {activity.added_by[0].toUpperCase()}
               </div>
-              <span>{activity.addedBy}</span>
+              <span>{activity.added_by}</span>
             </div>
             {avgRating && (
               <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">⭐ {avgRating}</span>

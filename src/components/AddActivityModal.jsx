@@ -1,6 +1,5 @@
 import { useState, lazy, Suspense } from 'react'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '../firebase'
+import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { X, Upload, MapPin } from 'lucide-react'
@@ -69,41 +68,29 @@ export default function AddActivityModal({ onClose }) {
     if (!position) { toast.error('Indique la localisation'); return }
     setLoading(true)
     try {
-      const imageUrl = imageFile ? await uploadToImgbb(imageFile) : null
-      const writePromise = addDoc(collection(db, 'activities'), {
+      const image_url = imageFile ? await uploadToImgbb(imageFile) : null
+      const { error } = await supabase.from('activities').insert({
         name: name.trim(),
         type,
         description: description.trim(),
         position,
-        imageUrl,
-        addedBy: user.displayName || user.email,
-        addedByUid: user.uid,
+        image_url,
+        added_by: user.displayName,
+        added_by_uid: user.uid,
         done: false,
-        createdAt: serverTimestamp(),
       })
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 8000)
-      )
-      await Promise.race([writePromise, timeout])
+      if (error) throw error
       toast.success('Activité ajoutée !')
       onClose()
     } catch (err) {
-      console.error('addDoc error:', err.code, err.message)
-      if (err.message === 'timeout') {
-        toast.error('Connexion Firestore trop lente — vérifie ta connexion internet', { duration: 8000 })
-      } else {
-        toast.error(`Erreur (${err.code || 'unknown'}): ${err.message}`, { duration: 8000 })
-      }
+      toast.error('Erreur : ' + err.message)
       setLoading(false)
     }
   }
 
   return (
-    // Overlay
     <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm flex flex-col sm:items-center sm:justify-center sm:p-4">
-      {/* Sheet: full screen on mobile, modal on desktop */}
       <div className="bg-white flex flex-col w-full h-full sm:h-auto sm:rounded-3xl sm:max-w-lg sm:shadow-2xl sm:max-h-[90vh]">
-        {/* Header */}
         <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-4 flex items-center justify-between flex-shrink-0">
           <h2 className="text-lg font-bold text-white">Ajouter un endroit</h2>
           <button onClick={onClose} className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-colors text-white">
@@ -111,7 +98,6 @@ export default function AddActivityModal({ onClose }) {
           </button>
         </div>
 
-        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">
           <form onSubmit={handleSubmit} className="p-5 space-y-5 pb-8">
             <div>
@@ -134,9 +120,7 @@ export default function AddActivityModal({ onClose }) {
                     type="button"
                     onClick={() => setType(t.value)}
                     className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                      type === t.value
-                        ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-600'
+                      type === t.value ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-600'
                     }`}
                   >
                     {t.label}
@@ -192,18 +176,10 @@ export default function AddActivityModal({ onClose }) {
             </div>
 
             <div className="flex gap-3 pt-1">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-3.5 rounded-2xl border-2 border-gray-100 text-gray-600 font-semibold"
-              >
+              <button type="button" onClick={onClose} className="flex-1 py-3.5 rounded-2xl border-2 border-gray-100 text-gray-600 font-semibold">
                 Annuler
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 disabled:opacity-60 text-white font-bold shadow-md"
-              >
+              <button type="submit" disabled={loading} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 disabled:opacity-60 text-white font-bold shadow-md">
                 {loading ? 'Envoi…' : 'Ajouter ✨'}
               </button>
             </div>

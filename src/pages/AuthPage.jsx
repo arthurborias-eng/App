@@ -24,14 +24,16 @@ export default function AuthPage() {
         toast.success('Content de te revoir !')
       }
     } catch (err) {
-      const msgs = {
-        'auth/user-not-found': 'Aucun compte avec cet email',
-        'auth/wrong-password': 'Mot de passe incorrect',
-        'auth/email-already-in-use': 'Email déjà utilisé',
-        'auth/weak-password': 'Mot de passe trop faible (6 car. min)',
-        'auth/invalid-credential': 'Email ou mot de passe incorrect',
+      const msg = err.message || ''
+      if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials')) {
+        toast.error('Email ou mot de passe incorrect')
+      } else if (msg.includes('already registered') || msg.includes('already been registered')) {
+        toast.error('Email déjà utilisé')
+      } else if (msg.includes('at least 6') || msg.includes('Password')) {
+        toast.error('Mot de passe trop faible (6 car. min)')
+      } else {
+        toast.error(msg)
       }
-      toast.error(msgs[err.code] || err.message)
     } finally {
       setLoading(false)
     }
@@ -39,12 +41,10 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-700">
-      {/* Background decorations */}
       <div className="absolute top-[-80px] left-[-80px] w-64 h-64 bg-white/10 rounded-full blur-3xl" />
       <div className="absolute bottom-[-60px] right-[-60px] w-80 h-80 bg-white/10 rounded-full blur-3xl" />
 
       <div className="w-full max-w-md relative">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-3xl mb-4 shadow-2xl">
             <MapPin className="w-10 h-10 text-violet-600" />
@@ -54,7 +54,6 @@ export default function AuthPage() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Tab switcher */}
           <div className="flex bg-gray-50 p-1.5 gap-1">
             <button
               onClick={() => setMode('login')}
