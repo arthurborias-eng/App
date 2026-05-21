@@ -86,13 +86,14 @@ export default function AddActivityModal({ onClose }) {
         done: false,
         createdAt: serverTimestamp(),
       })
-      toast.success('Activité ajoutée !')
-      onClose() // fermeture immédiate après succès
     } catch (err) {
       toast.dismiss('upload')
       toast.error('Erreur : ' + err.message)
       setLoading(false)
+      return
     }
+    toast.success('Activité ajoutée !')
+    onClose()
   }
 
   return (
@@ -184,7 +185,7 @@ export default function AddActivityModal({ onClose }) {
                     <span className="text-xs">Galerie ou appareil photo</span>
                   </div>
                 )}
-                <input type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
+                <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
               </label>
             </div>
 
