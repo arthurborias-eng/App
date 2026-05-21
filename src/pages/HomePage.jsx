@@ -30,10 +30,17 @@ export default function HomePage() {
 
   useEffect(() => {
     const q = query(collection(db, 'activities'), orderBy('createdAt', 'desc'))
-    const unsub = onSnapshot(q, (snap) => {
-      setActivities(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-      setLoading(false)
-    })
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setActivities(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Firestore:', err.message)
+        setLoading(false)
+      }
+    )
     return unsub
   }, [])
 
