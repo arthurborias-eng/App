@@ -70,7 +70,9 @@ export default function AddActivityModal({ onClose }) {
     setLoading(true)
     try {
       const imageUrl = imageFile ? await uploadToImgbb(imageFile) : null
-      await addDoc(collection(db, 'activities'), {
+      // Fire without awaiting server confirmation — Firestore writes locally
+      // and the optimistic update is already visible via onSnapshot
+      addDoc(collection(db, 'activities'), {
         name: name.trim(),
         type,
         description: description.trim(),
@@ -80,9 +82,9 @@ export default function AddActivityModal({ onClose }) {
         addedByUid: user.uid,
         done: false,
         createdAt: serverTimestamp(),
-      })
+      }).catch((err) => toast.error('Erreur réseau : ' + err.message))
       toast.success('Activité ajoutée !')
-      setTimeout(onClose, 0)
+      onClose()
     } catch (err) {
       toast.error('Erreur : ' + err.message)
       setLoading(false)
