@@ -1,11 +1,9 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import ActivityCard from '../components/ActivityCard'
 import AddActivityModal from '../components/AddActivityModal'
-import { Plus, CheckCircle2, Clock, List, Map, Search, X } from 'lucide-react'
-
-const DoneMap = lazy(() => import('../components/DoneMap'))
+import { Plus, CheckCircle2, Clock, Search, X } from 'lucide-react'
 
 const TYPES = ['all', 'restaurant', 'bar', 'activite', 'lieu', 'autre']
 const TYPE_LABELS = { all: '🗺️ Tout', restaurant: '🍽️ Resto', bar: '🍸 Bar', activite: '🎯 Activité', lieu: '📍 Lieu', autre: '✨ Autre' }
@@ -22,7 +20,6 @@ export default function HomePage() {
   const { user } = useAuth()
   const [activities, setActivities] = useState([])
   const [tab, setTab] = useState('todo')
-  const [doneView, setDoneView] = useState('list')
   const [showAdd, setShowAdd] = useState(false)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -76,7 +73,7 @@ export default function HomePage() {
           }`}
         >
           <CheckCircle2 size={15} />
-          Faites
+          Faits
           {doneList.length > 0 && (
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab === 'done' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
               {doneList.length}
@@ -85,27 +82,7 @@ export default function HomePage() {
         </button>
       </div>
 
-      {tab === 'done' && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex rounded-xl bg-white border border-gray-200 p-1 gap-1 shadow-sm">
-            <button
-              onClick={() => setDoneView('list')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${doneView === 'list' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}
-            >
-              <List size={14} /> Liste
-            </button>
-            <button
-              onClick={() => setDoneView('map')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${doneView === 'map' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow' : 'text-gray-500 hover:bg-gray-50'}`}
-            >
-              <Map size={14} /> Carte
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!(tab === 'done' && doneView === 'map') && (
-        <div className="relative mb-4">
+      <div className="relative mb-4">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
             type="text"
@@ -122,11 +99,9 @@ export default function HomePage() {
               <X size={14} />
             </button>
           )}
-        </div>
-      )}
+      </div>
 
-      {!(tab === 'done' && doneView === 'map') && (
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
           {TYPES.map((t) => (
             <button
               key={t}
@@ -138,17 +113,12 @@ export default function HomePage() {
               {TYPE_LABELS[t]}
             </button>
           ))}
-        </div>
-      )}
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-24">
           <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
         </div>
-      ) : tab === 'done' && doneView === 'map' ? (
-        <Suspense fallback={<div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" /></div>}>
-          <DoneMap activities={doneList} />
-        </Suspense>
       ) : displayed.length === 0 ? (
         <div className="text-center py-24">
           <div className="text-6xl mb-4">{search ? '🔍' : tab === 'todo' ? '🗺️' : '🏆'}</div>

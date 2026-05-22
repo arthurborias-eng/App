@@ -20,7 +20,7 @@ function Spinner() {
 const NAV_ITEMS = [
   { id: 'spots',    label: 'Nos spots',       icon: MapPin,          active: 'from-violet-600 to-indigo-600' },
   { id: 'recettes', label: 'Nos recettes',    icon: UtensilsCrossed, active: 'from-rose-500 to-pink-500'     },
-  { id: 'carte',    label: 'Carte globale',   icon: Map,             active: 'from-blue-500 to-cyan-500'     },
+  { id: 'carte',    label: 'Carte',            icon: Map,             active: 'from-blue-500 to-cyan-500'     },
   { id: 'courses',  label: 'Liste de courses',icon: ShoppingCart,    active: 'from-emerald-500 to-teal-500'  },
 ]
 
