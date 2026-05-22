@@ -8,13 +8,15 @@ import { User, X, MessageSquare, Trash2, Pencil } from 'lucide-react'
 
 function RecipeDetailModal({ recipe, onClose }) {
   const { user } = useAuth()
-  const [rating, setRating] = useState(0)
-  const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [editingRating, setEditingRating] = useState(false)
 
   const userRating = recipe.ratings?.find((r) => r.uid === user.uid)
+
+  const [rating, setRating] = useState(userRating?.value || 0)
+  const [comment, setComment] = useState(userRating?.comment || '')
   const isOwner = recipe.added_by_uid === user.uid
   const avgRating = recipe.ratings?.length
     ? (recipe.ratings.reduce((s, r) => s + r.value, 0) / recipe.ratings.length).toFixed(1)
@@ -32,19 +34,15 @@ function RecipeDetailModal({ recipe, onClose }) {
   const handleRate = async (e) => {
     e.preventDefault()
     if (rating === 0) { toast.error('Choisis une note'); return }
-    if (userRating) { toast.error('Tu as déjà noté cette recette'); return }
     setSubmitting(true)
     try {
-      const newRatings = [...(recipe.ratings || []), {
-        uid: user.uid,
-        name: user.displayName,
-        value: rating,
-        comment: comment.trim(),
-        createdAt: new Date().toISOString(),
-      }]
+      const updated = { uid: user.uid, name: user.displayName, value: rating, comment: comment.trim(), createdAt: new Date().toISOString() }
+      const newRatings = userRating
+        ? (recipe.ratings || []).map((r) => r.uid === user.uid ? updated : r)
+        : [...(recipe.ratings || []), updated]
       const { error } = await supabase.from('recipes').update({ ratings: newRatings }).eq('id', recipe.id)
       if (error) throw error
-      toast.success('Avis envoyé !')
+      toast.success(userRating ? 'Avis modifié !' : 'Avis envoyé !')
       onClose()
     } catch (err) { toast.error(err.message) }
     finally { setSubmitting(false) }
@@ -142,9 +140,9 @@ function RecipeDetailModal({ recipe, onClose }) {
                 </div>
               )}
 
-              {!userRating ? (
+              {(!userRating || editingRating) ? (
                 <form onSubmit={handleRate} className="space-y-3 bg-rose-50 rounded-2xl p-4">
-                  <h3 className="font-bold text-gray-900">Ton avis</h3>
+                  <h3 className="font-bold text-gray-900">{userRating ? 'Modifier ton avis' : 'Ton avis'}</h3>
                   <StarRating value={rating} onChange={setRating} size={30} />
                   <textarea
                     value={comment}
@@ -153,17 +151,30 @@ function RecipeDetailModal({ recipe, onClose }) {
                     placeholder="Ton commentaire (optionnel)…"
                     className="w-full px-4 py-2.5 rounded-xl border-2 border-rose-100 focus:outline-none focus:border-rose-400 text-gray-900 resize-none text-sm bg-white"
                   />
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 disabled:opacity-60 text-white font-bold rounded-xl shadow transition-all"
-                  >
-                    {submitting ? 'Envoi…' : 'Envoyer mon avis ⭐'}
-                  </button>
+                  <div className="flex gap-2">
+                    {editingRating && (
+                      <button type="button" onClick={() => setEditingRating(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold">
+                        Annuler
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 disabled:opacity-60 text-white font-bold rounded-xl shadow transition-all"
+                    >
+                      {submitting ? 'Envoi…' : userRating ? 'Mettre à jour' : 'Envoyer mon avis ⭐'}
+                    </button>
+                  </div>
                 </form>
               ) : (
-                <div className="text-center text-sm text-gray-400 py-2 bg-gray-50 rounded-2xl">
-                  ✓ Tu as déjà noté cette recette
+                <div className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <StarRating value={userRating.value} readonly size={14} />
+                    <span className="text-xs text-gray-400">{userRating.comment || ''}</span>
+                  </div>
+                  <button onClick={() => { setRating(userRating.value); setComment(userRating.comment || ''); setEditingRating(true) }} className="text-xs text-rose-500 font-semibold hover:text-rose-700 transition-colors flex-shrink-0 ml-2">
+                    Modifier
+                  </button>
                 </div>
               )}
             </div>
