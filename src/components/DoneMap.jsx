@@ -66,7 +66,7 @@ export default function DoneMap({ activities }) {
       </div>
 
       {/* Map */}
-      <div className="rounded-3xl overflow-hidden shadow-lg border border-gray-200" style={{ height: '420px' }}>
+      <div className="isolate rounded-3xl overflow-hidden shadow-lg border border-gray-200" style={{ height: '420px' }}>
         <MapContainer
           bounds={bounds}
           boundsOptions={{ padding: [40, 40] }}

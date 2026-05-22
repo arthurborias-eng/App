@@ -42,18 +42,28 @@ export default function ShoppingPage() {
   }
 
   const toggleItem = async (item) => {
-    await supabase.from('shopping_list').update({ checked: !item.checked }).eq('id', item.id)
+    // Optimistic update — UI réagit immédiatement
+    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, checked: !item.checked } : i))
+    const { error } = await supabase.from('shopping_list').update({ checked: !item.checked }).eq('id', item.id)
+    if (error) {
+      setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, checked: item.checked } : i))
+      toast.error('Erreur')
+    }
   }
 
   const deleteItem = async (id) => {
-    await supabase.from('shopping_list').delete().eq('id', id)
+    setItems((prev) => prev.filter((i) => i.id !== id))
+    const { error } = await supabase.from('shopping_list').delete().eq('id', id)
+    if (error) { fetchItems(); toast.error('Erreur') }
   }
 
   const clearChecked = async () => {
     const ids = items.filter((i) => i.checked).map((i) => i.id)
     if (!ids.length) return
+    setItems((prev) => prev.filter((i) => !i.checked))
     const { error } = await supabase.from('shopping_list').delete().in('id', ids)
-    if (!error) toast.success(`${ids.length} article${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''}`)
+    if (error) { fetchItems(); toast.error('Erreur') }
+    else toast.success(`${ids.length} article${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''}`)
   }
 
   const handleKey = (e) => {

@@ -105,7 +105,7 @@ export default function GlobalMapPage() {
           <p className="text-gray-400 text-sm">Ajoute des endroits avec une localisation pour les voir ici</p>
         </div>
       ) : (
-        <div className="rounded-3xl overflow-hidden shadow-lg border border-gray-200" style={{ height: '65vh', minHeight: '400px' }}>
+        <div className="isolate rounded-3xl overflow-hidden shadow-lg border border-gray-200" style={{ height: '65vh', minHeight: '400px' }}>
           <MapContainer
             bounds={bounds}
             boundsOptions={{ padding: [50, 50] }}
