@@ -31,10 +31,12 @@ const NAV_ITEMS = [
 function MainApp() {
   const { user, logout } = useAuth()
   const [page, setPage] = useState('home')
+  const [pageParams, setPageParams] = useState({})
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const navigate = (id) => {
+  const navigate = (id, params = {}) => {
     setPage(id)
+    setPageParams(params)
     setDrawerOpen(false)
   }
 
@@ -136,7 +138,7 @@ function MainApp() {
           </div>
         }>
           {page === 'home'     && <DashboardPage navigate={navigate} />}
-          {page === 'spots'    && <HomePage />}
+          {page === 'spots'    && <HomePage initialTab={pageParams.tab} />}
           {page === 'recettes' && <RecipesPage />}
           {page === 'planning' && <PlanningPage />}
           {page === 'carte'    && <GlobalMapPage />}

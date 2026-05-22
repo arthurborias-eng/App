@@ -16,10 +16,10 @@ const TYPE_COLORS = {
   autre: 'from-gray-500 to-slate-500',
 }
 
-export default function HomePage() {
+export default function HomePage({ initialTab }) {
   const { user } = useAuth()
   const [activities, setActivities] = useState([])
-  const [tab, setTab] = useState('todo')
+  const [tab, setTab] = useState(initialTab || 'todo')
   const [showAdd, setShowAdd] = useState(false)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')

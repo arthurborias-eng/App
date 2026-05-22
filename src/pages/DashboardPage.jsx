@@ -63,7 +63,7 @@ export default function DashboardPage({ navigate }) {
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-extrabold text-gray-900">
-          {greeting}, {user.displayName || 'toi'} 👋
+          {greeting}, {user.displayName || 'toi'}
         </h1>
         <p className="text-gray-400 text-sm mt-0.5 capitalize">
           {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -73,7 +73,7 @@ export default function DashboardPage({ navigate }) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <button
-          onClick={() => navigate('spots')}
+          onClick={() => navigate('spots', { tab: 'done' })}
           className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center hover:shadow-md transition-shadow"
         >
           <div className="text-3xl font-extrabold text-emerald-500">{done.length}</div>
@@ -130,7 +130,7 @@ export default function DashboardPage({ navigate }) {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-gray-900 flex items-center gap-2">
               <MapPin size={16} className="text-violet-500" />
-              Spots récents
+              Spots ajoutés récemment
             </h2>
             <button
               onClick={() => navigate('spots')}
@@ -156,7 +156,7 @@ export default function DashboardPage({ navigate }) {
                 {a.done
                   ? <CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" />
                   : a.planned_date
-                    ? <span className="text-xs text-amber-500 font-semibold flex-shrink-0">{formatDate(a.planned_date)}</span>
+                    ? <span className="text-xs text-violet-500 font-semibold flex-shrink-0">{formatDate(a.planned_date)}</span>
                     : null
                 }
               </div>
@@ -171,7 +171,7 @@ export default function DashboardPage({ navigate }) {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-gray-900 flex items-center gap-2">
               <UtensilsCrossed size={16} className="text-rose-500" />
-              Recettes récentes
+              Recettes ajoutées récemment
             </h2>
             <button
               onClick={() => navigate('recettes')}
