@@ -46,7 +46,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-3xl mb-4 shadow-2xl text-5xl">
-            💑
+            🌍
           </div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight">À deux</h1>
           <p className="text-white/70 mt-2 text-lg">Vos spots & recettes</p>
