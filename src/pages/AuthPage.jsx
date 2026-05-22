@@ -109,7 +109,7 @@ export default function AuthPage() {
               disabled={loading}
               className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60 text-white font-extrabold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 mt-2"
             >
-              {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter 🚀' : 'Créer mon compte ✨'}
+              {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
             </button>
           </form>
         </div>
