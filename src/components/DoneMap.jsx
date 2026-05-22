@@ -1,40 +1,38 @@
 import { useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet'
 import L from 'leaflet'
 import StarRating from './StarRating'
 
 const TYPE_CONFIG = {
   restaurant: { emoji: '🍽️', color: '#f97316' },
   bar:        { emoji: '🍸', color: '#a855f7' },
-  activite:   { emoji: '🎯', color: '#3b82f6' },
+  activite:   { emoji: '🎯', color: '#6366f1' },
   lieu:       { emoji: '📍', color: '#10b981' },
-  autre:      { emoji: '✨', color: '#6b7280' },
+  autre:      { emoji: '✨', color: '#94a3b8' },
 }
 
 function makeIcon(type) {
   const cfg = TYPE_CONFIG[type] || TYPE_CONFIG.autre
   const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
-      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44">
+      <filter id="ds" x="-30%" y="-20%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.22)"/>
       </filter>
-      <path d="M22 2C13.16 2 6 9.16 6 18c0 12 16 32 16 32s16-20 16-32C38 9.16 30.84 2 22 2z"
-            fill="${cfg.color}" filter="url(#shadow)"/>
-      <circle cx="22" cy="18" r="10" fill="white"/>
-      <text x="22" y="23" text-anchor="middle" font-size="13">${cfg.emoji}</text>
+      <path d="M18 2C10.27 2 4 8.27 4 16c0 10.5 14 28 14 28s14-17.5 14-28C32 8.27 25.73 2 18 2z"
+            fill="${cfg.color}" filter="url(#ds)"/>
+      <circle cx="18" cy="16" r="8" fill="white" opacity="0.95"/>
+      <text x="18" y="21" text-anchor="middle" font-size="11">${cfg.emoji}</text>
     </svg>`
   return L.divIcon({
     html: svg,
     className: '',
-    iconSize: [44, 52],
-    iconAnchor: [22, 52],
-    popupAnchor: [0, -54],
+    iconSize: [36, 44],
+    iconAnchor: [18, 44],
+    popupAnchor: [0, -46],
   })
 }
 
 export default function DoneMap({ activities }) {
-  const [selected, setSelected] = useState(null)
-
   const valid = activities.filter((a) => a.position?.lat && a.position?.lng)
   if (valid.length === 0) {
     return (
@@ -66,38 +64,45 @@ export default function DoneMap({ activities }) {
       </div>
 
       {/* Map */}
-      <div className="isolate rounded-3xl overflow-hidden shadow-lg border border-gray-200" style={{ height: '420px' }}>
+      <div className="isolate rounded-3xl overflow-hidden shadow-lg border border-gray-100" style={{ height: '420px' }}>
         <MapContainer
           bounds={bounds}
           boundsOptions={{ padding: [40, 40] }}
           style={{ height: '100%', width: '100%' }}
+          zoomControl={false}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+            subdomains="abcd"
+            maxZoom={19}
           />
+          <ZoomControl position="bottomright" />
           {valid.map((a) => (
             <Marker
               key={a.id}
               position={[a.position.lat, a.position.lng]}
               icon={makeIcon(a.type)}
-              eventHandlers={{ click: () => setSelected(a) }}
             >
-              <Popup className="custom-popup">
-                <div className="min-w-[180px]">
+              <Popup className="duo-popup">
+                <div style={{ minWidth: 170, fontFamily: 'system-ui, sans-serif', padding: '2px 0' }}>
                   {a.image_url && (
-                    <img src={a.image_url} alt={a.name} className="w-full h-28 object-cover rounded-xl mb-2" />
+                    <img src={a.image_url} alt={a.name}
+                      style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 10, marginBottom: 8 }} />
                   )}
-                  <div className="font-bold text-gray-900 text-sm mb-1">{a.name}</div>
-                  <div className="text-xs text-gray-500 mb-1">par {a.added_by}</div>
+                  <div style={{ fontWeight: 700, color: '#1e1b4b', fontSize: 14, marginBottom: 2 }}>{a.name}</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>par {a.added_by}</div>
                   {avgRating(a) && (
-                    <div className="flex items-center gap-1">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <StarRating value={Math.round(parseFloat(avgRating(a)))} readonly size={12} />
-                      <span className="text-xs text-amber-600 font-bold">{avgRating(a)}</span>
+                      <span style={{ fontSize: 11, color: '#d97706', fontWeight: 700 }}>{avgRating(a)}</span>
                     </div>
                   )}
                   {a.description && (
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{a.description}</p>
+                    <p style={{ fontSize: 11, color: '#6b7280', marginTop: 4, overflow: 'hidden',
+                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {a.description}
+                    </p>
                   )}
                 </div>
               </Popup>
@@ -105,6 +110,21 @@ export default function DoneMap({ activities }) {
           ))}
         </MapContainer>
       </div>
+
+      <style>{`
+        .duo-popup .leaflet-popup-content-wrapper {
+          border-radius: 16px;
+          box-shadow: 0 8px 24px rgba(109,40,217,.12), 0 2px 8px rgba(0,0,0,.08);
+          border: 1px solid #ede9fe;
+          padding: 0;
+        }
+        .duo-popup .leaflet-popup-content { margin: 12px 14px; }
+        .duo-popup .leaflet-popup-tip { background: white; }
+        .leaflet-control-zoom { border: 1px solid #ede9fe !important; border-radius: 10px !important; overflow: hidden; box-shadow: 0 1px 4px rgba(109,40,217,.10) !important; }
+        .leaflet-control-zoom a { color: #7c3aed !important; border-color: #ede9fe !important; font-weight: 600; }
+        .leaflet-control-zoom a:hover { background: #f5f3ff !important; color: #4c1d95 !important; }
+        .leaflet-control-attribution { font-size: 9px !important; background: rgba(255,255,255,.75) !important; }
+      `}</style>
 
       {/* Count */}
       <p className="text-center text-sm text-gray-400">
