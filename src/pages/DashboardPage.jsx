@@ -154,7 +154,7 @@ export default function DashboardPage({ navigate }) {
                   <div className="text-xs text-gray-400">{a.added_by}</div>
                 </div>
                 {a.done
-                  ? <CheckCircle2 size={15} className="text-emerald-500 flex-shrink-0" />
+                  ? <CheckCircle2 size={15} className="text-violet-500 flex-shrink-0" />
                   : a.planned_date
                     ? <span className="text-xs text-violet-500 font-semibold flex-shrink-0">{formatDate(a.planned_date)}</span>
                     : null
