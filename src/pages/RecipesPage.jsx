@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import RecipeCard from '../components/RecipeCard'
 import AddRecipeModal from '../components/AddRecipeModal'
-import { Plus, Search, X } from 'lucide-react'
+import { Plus, Search, X, Tag } from 'lucide-react'
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [search, setSearch] = useState('')
-  const [activeIngredient, setActiveIngredient] = useState(null)
 
   const fetchRecipes = async () => {
     const { data, error } = await supabase
@@ -29,16 +28,18 @@ export default function RecipesPage() {
     return () => channel.unsubscribe()
   }, [])
 
-  // All unique ingredients across all recipes, sorted alphabetically
-  const allIngredients = [...new Set(
-    recipes.flatMap((r) => r.ingredients || [])
-  )].sort((a, b) => a.localeCompare(b))
+  const q = search.toLowerCase().trim()
+  const displayed = recipes.filter((r) =>
+    r.name.toLowerCase().includes(q) ||
+    r.ingredients?.some((ing) => ing.toLowerCase().includes(q))
+  )
 
-  const displayed = recipes
-    .filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
-    .filter((r) => !activeIngredient || r.ingredients?.includes(activeIngredient))
+  // Which ingredients from all recipes match the search (but not by name)
+  const matchedByIngredient = q
+    ? displayed.filter((r) => !r.name.toLowerCase().includes(q))
+    : []
 
-  const hasFilters = search || activeIngredient
+  const hasFilters = !!q
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-4 pb-28">
@@ -62,30 +63,13 @@ export default function RecipesPage() {
         )}
       </div>
 
-      {/* Ingredient filter */}
-      {allIngredients.length > 0 && (
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-          {activeIngredient && (
-            <button
-              onClick={() => setActiveIngredient(null)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
-            >
-              <X size={12} /> Tout
-            </button>
-          )}
-          {allIngredients.map((ing) => (
-            <button
-              key={ing}
-              onClick={() => setActiveIngredient(activeIngredient === ing ? null : ing)}
-              className={`px-3 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all ${
-                activeIngredient === ing
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md scale-105'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-rose-300 hover:text-rose-600'
-              }`}
-            >
-              {ing}
-            </button>
-          ))}
+      {/* Matched by ingredient badge */}
+      {matchedByIngredient.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 px-1">
+          <Tag size={13} className="text-rose-400 flex-shrink-0" />
+          <p className="text-xs text-rose-600 font-medium">
+            {matchedByIngredient.length} recette{matchedByIngredient.length > 1 ? 's' : ''} trouvée{matchedByIngredient.length > 1 ? 's' : ''} grâce à l'ingrédient « {search} »
+          </p>
         </div>
       )}
 
@@ -101,7 +85,7 @@ export default function RecipesPage() {
           </p>
           <p className="text-gray-400 text-sm">
             {hasFilters
-              ? 'Essaie un autre ingrédient ou un autre nom'
+              ? 'Aucune recette ne correspond à ce nom ou ingrédient'
               : 'Sois le premier à partager une recette !'}
           </p>
         </div>
@@ -109,9 +93,7 @@ export default function RecipesPage() {
         <>
           {hasFilters && (
             <p className="text-xs text-gray-400 mb-3 font-medium">
-              {displayed.length} recette{displayed.length > 1 ? 's' : ''}
-              {activeIngredient ? ` avec « ${activeIngredient} »` : ''}
-              {search ? ` correspondant à « ${search} »` : ''}
+              {displayed.length} recette{displayed.length > 1 ? 's' : ''} pour « {search} »
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
