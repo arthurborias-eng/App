@@ -128,19 +128,32 @@ function RecipeDetailModal({ recipe, onClose }) {
                     <MessageSquare size={15} className="text-rose-500" />
                     Avis
                   </h3>
-                  {recipe.ratings.map((r, i) => (
-                    <div key={i} className="bg-gray-50 rounded-2xl p-3.5">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-bold text-gray-900">{r.name}</span>
-                        <StarRating value={r.value} readonly size={14} />
+                  {recipe.ratings.map((r, i) => {
+                    const isOwnerRating = r.uid === user.uid
+                    return (
+                      <div key={i} className="bg-gray-50 rounded-2xl p-3.5">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-bold text-gray-900">{r.name}</span>
+                          <div className="flex items-center gap-2">
+                            <StarRating value={r.value} readonly size={14} />
+                            {isOwnerRating && (
+                              <button
+                                onClick={() => { setRating(r.value); setComment(r.comment || ''); setEditingRating(true) }}
+                                className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors"
+                              >
+                                <Pencil size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {r.comment && <p className="text-sm text-gray-500">{r.comment}</p>}
                       </div>
-                      {r.comment && <p className="text-sm text-gray-500">{r.comment}</p>}
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
 
-              {!userRating ? (
+              {!userRating && (
                 <form onSubmit={handleRate} className="space-y-3 bg-rose-50 rounded-2xl p-4">
                   <h3 className="font-bold text-gray-900">Ton avis</h3>
                   <StarRating value={rating} onChange={setRating} size={30} />
@@ -155,7 +168,8 @@ function RecipeDetailModal({ recipe, onClose }) {
                     {submitting ? 'Envoi…' : 'Envoyer mon avis ⭐'}
                   </button>
                 </form>
-              ) : editingRating ? (
+              )}
+              {editingRating && (
                 <form onSubmit={handleRate} className="space-y-3 bg-rose-50 rounded-2xl p-4">
                   <h3 className="font-bold text-gray-900">Modifier ton avis</h3>
                   <StarRating value={rating} onChange={setRating} size={30} />
@@ -173,19 +187,6 @@ function RecipeDetailModal({ recipe, onClose }) {
                     </button>
                   </div>
                 </form>
-              ) : (
-                <div className="bg-gray-50 rounded-2xl p-3.5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold text-gray-900">Ton avis</span>
-                    <div className="flex items-center gap-2">
-                      <StarRating value={userRating.value} readonly size={14} />
-                      <button onClick={() => { setRating(userRating.value); setComment(userRating.comment || ''); setEditingRating(true) }} className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors">
-                        <Pencil size={13} />
-                      </button>
-                    </div>
-                  </div>
-                  {userRating.comment && <p className="text-sm text-gray-500">{userRating.comment}</p>}
-                </div>
               )}
             </div>
 
