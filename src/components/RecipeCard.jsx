@@ -128,7 +128,7 @@ function RecipeDetailModal({ recipe, onClose }) {
                 <div className="space-y-2.5">
                   <h3 className="font-bold text-gray-900 flex items-center gap-2">
                     <MessageSquare size={15} className="text-rose-500" />
-                    Avis du groupe
+                    Avis
                   </h3>
                   {recipe.ratings.map((r, i) => (
                     <div key={i} className="bg-gray-50 rounded-2xl p-3.5">
