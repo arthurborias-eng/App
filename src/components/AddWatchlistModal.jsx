@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { X, Search, Tv, Film, Loader2 } from 'lucide-react'
 
-const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY || 'ea03a30512bd3b271620d780ab2f053e'
 const TMDB_IMG = 'https://image.tmdb.org/t/p/w200'
 
 const PLATFORMS = ['Netflix', 'Disney+', 'Prime Video', 'Apple TV+', 'Canal+', 'OCS', 'Salto', 'Autre']
