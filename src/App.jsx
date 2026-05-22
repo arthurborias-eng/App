@@ -1,11 +1,13 @@
 import { lazy, Suspense, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
-import { MapPin, UtensilsCrossed, LogOut, Menu, X } from 'lucide-react'
+import { MapPin, UtensilsCrossed, Map, ShoppingCart, LogOut, Menu, X } from 'lucide-react'
 
-const AuthPage = lazy(() => import('./pages/AuthPage'))
-const HomePage = lazy(() => import('./pages/HomePage'))
-const RecipesPage = lazy(() => import('./pages/RecipesPage'))
+const AuthPage      = lazy(() => import('./pages/AuthPage'))
+const HomePage      = lazy(() => import('./pages/HomePage'))
+const RecipesPage   = lazy(() => import('./pages/RecipesPage'))
+const GlobalMapPage = lazy(() => import('./pages/GlobalMapPage'))
+const ShoppingPage  = lazy(() => import('./pages/ShoppingPage'))
 
 function Spinner() {
   return (
@@ -16,8 +18,10 @@ function Spinner() {
 }
 
 const NAV_ITEMS = [
-  { id: 'spots',    label: 'Nos spots',    icon: MapPin,          active: 'from-violet-600 to-indigo-600' },
-  { id: 'recettes', label: 'Nos recettes', icon: UtensilsCrossed, active: 'from-rose-500 to-pink-500' },
+  { id: 'spots',    label: 'Nos spots',       icon: MapPin,          active: 'from-violet-600 to-indigo-600' },
+  { id: 'recettes', label: 'Nos recettes',    icon: UtensilsCrossed, active: 'from-rose-500 to-pink-500'     },
+  { id: 'carte',    label: 'Carte globale',   icon: Map,             active: 'from-blue-500 to-cyan-500'     },
+  { id: 'courses',  label: 'Liste de courses',icon: ShoppingCart,    active: 'from-emerald-500 to-teal-500'  },
 ]
 
 function MainApp() {
@@ -127,7 +131,10 @@ function MainApp() {
             <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
           </div>
         }>
-          {page === 'spots' ? <HomePage /> : <RecipesPage />}
+          {page === 'spots'    && <HomePage />}
+          {page === 'recettes' && <RecipesPage />}
+          {page === 'carte'    && <GlobalMapPage />}
+          {page === 'courses'  && <ShoppingPage />}
         </Suspense>
       </div>
     </div>

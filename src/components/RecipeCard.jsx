@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import StarRating from './StarRating'
 import AddRecipeModal from './AddRecipeModal'
 import toast from 'react-hot-toast'
-import { User, X, MessageSquare, Trash2, Pencil } from 'lucide-react'
+import { User, X, MessageSquare, Trash2, Pencil, ShoppingCart } from 'lucide-react'
 
 function RecipeDetailModal({ recipe, onClose }) {
   const { user } = useAuth()
@@ -21,6 +21,19 @@ function RecipeDetailModal({ recipe, onClose }) {
   const avgRating = recipe.ratings?.length
     ? (recipe.ratings.reduce((s, r) => s + r.value, 0) / recipe.ratings.length).toFixed(1)
     : null
+
+  const handleAddToShopping = async () => {
+    if (!recipe.ingredients?.length) { toast.error('Aucun ingrédient à ajouter'); return }
+    const rows = recipe.ingredients.map((ing) => ({
+      text: ing,
+      checked: false,
+      added_by: user.displayName,
+      added_by_uid: user.uid,
+    }))
+    const { error } = await supabase.from('shopping_list').insert(rows)
+    if (error) toast.error('Erreur')
+    else toast.success(`${rows.length} ingrédient${rows.length > 1 ? 's' : ''} ajouté${rows.length > 1 ? 's' : ''} à la liste 🛒`)
+  }
 
   const handleDelete = async () => {
     try {
@@ -101,7 +114,16 @@ function RecipeDetailModal({ recipe, onClose }) {
             {/* Ingredients */}
             {recipe.ingredients?.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-2">Ingrédients</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-gray-700">Ingrédients</h3>
+                  <button
+                    onClick={handleAddToShopping}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors"
+                  >
+                    <ShoppingCart size={12} />
+                    Ajouter à la liste
+                  </button>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {recipe.ingredients.map((ing) => (
                     <span key={ing} className="px-3 py-1 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
