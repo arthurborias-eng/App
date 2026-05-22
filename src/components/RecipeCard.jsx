@@ -247,9 +247,6 @@ export default function RecipeCard({ recipe }) {
             </div>
           )}
 
-          {recipe.description && (
-            <p className="text-xs text-gray-400 line-clamp-2 mb-3 leading-relaxed">{recipe.description}</p>
-          )}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs text-gray-400">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold">
