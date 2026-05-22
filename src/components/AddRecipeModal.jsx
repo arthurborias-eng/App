@@ -1,8 +1,8 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
-import { X, Upload } from 'lucide-react'
+import { X, Upload, Plus } from 'lucide-react'
 
 async function compressImage(file) {
   return new Promise((resolve) => {
@@ -37,9 +37,27 @@ export default function AddRecipeModal({ onClose }) {
   const { user } = useAuth()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [ingredients, setIngredients] = useState([])
+  const [ingredientInput, setIngredientInput] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const addIngredient = () => {
+    const val = ingredientInput.trim()
+    if (!val) return
+    if (ingredients.includes(val)) { toast.error('Ingrédient déjà ajouté'); return }
+    setIngredients([...ingredients, val])
+    setIngredientInput('')
+  }
+
+  const removeIngredient = (ing) => {
+    setIngredients(ingredients.filter((i) => i !== ing))
+  }
+
+  const handleIngredientKey = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addIngredient() }
+  }
 
   const handleImage = (e) => {
     const file = e.target.files[0]
@@ -59,6 +77,7 @@ export default function AddRecipeModal({ onClose }) {
       const { error } = await supabase.from('recipes').insert({
         name: name.trim(),
         description: description.trim(),
+        ingredients,
         image_url,
         added_by: user.displayName,
         added_by_uid: user.uid,
@@ -96,12 +115,46 @@ export default function AddRecipeModal({ onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description / Ingrédients</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ingrédients</label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={ingredientInput}
+                  onChange={(e) => setIngredientInput(e.target.value)}
+                  onKeyDown={handleIngredientKey}
+                  placeholder="Ex: farine, œufs, beurre…"
+                  className="flex-1 px-4 py-2.5 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-rose-400 text-gray-900 bg-gray-50 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={addIngredient}
+                  className="px-3 py-2.5 rounded-2xl bg-rose-100 hover:bg-rose-200 text-rose-600 transition-colors flex-shrink-0"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+              {ingredients.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {ingredients.map((ing) => (
+                    <span key={ing} className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 text-sm font-medium rounded-full border border-rose-200">
+                      {ing}
+                      <button type="button" onClick={() => removeIngredient(ing)} className="hover:text-rose-900 transition-colors">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-400 mt-1.5">Appuie sur Entrée ou + pour ajouter</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description / Étapes</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                placeholder="Décris la recette, les ingrédients, les étapes…"
+                placeholder="Décris les étapes de préparation…"
                 className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-rose-400 text-gray-900 bg-gray-50 resize-none text-base"
               />
             </div>
@@ -132,7 +185,7 @@ export default function AddRecipeModal({ onClose }) {
                 Annuler
               </button>
               <button type="submit" disabled={loading} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 disabled:opacity-60 text-white font-bold shadow-md">
-                {loading ? 'Envoi…' : 'Ajouter 🍳'}
+                {loading ? 'Envoi…' : 'Ajouter'}
               </button>
             </div>
           </form>

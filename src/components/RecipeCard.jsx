@@ -64,8 +64,10 @@ function RecipeDetailModal({ recipe, onClose }) {
           {recipe.image_url ? (
             <img src={recipe.image_url} alt={recipe.name} className="w-full h-52 object-cover" />
           ) : (
-            <div className="w-full h-32 bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-6xl">
-              🍳
+            <div className="w-full h-32 bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center">
+              <span className="text-white text-4xl font-bold opacity-40">
+                {recipe.name[0].toUpperCase()}
+              </span>
             </div>
           )}
           <button onClick={onClose} className="hidden sm:flex absolute top-3 right-3 p-2 rounded-xl bg-black/30 hover:bg-black/50 text-white transition-colors backdrop-blur-sm">
@@ -92,9 +94,26 @@ function RecipeDetailModal({ recipe, onClose }) {
               </div>
             </div>
 
+            {/* Ingredients */}
+            {recipe.ingredients?.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-2">Ingrédients</h3>
+                <div className="flex flex-wrap gap-2">
+                  {recipe.ingredients.map((ing) => (
+                    <span key={ing} className="px-3 py-1 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
+                      {ing}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Description */}
             {recipe.description && (
-              <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 rounded-2xl px-4 py-3 whitespace-pre-wrap">{recipe.description}</p>
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-2">Préparation</h3>
+                <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 rounded-2xl px-4 py-3 whitespace-pre-wrap">{recipe.description}</p>
+              </div>
             )}
 
             {/* Ratings */}
@@ -190,17 +209,29 @@ export default function RecipeCard({ recipe }) {
             <img src={recipe.image_url} alt={recipe.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           </div>
         ) : (
-          <div className="w-full h-24 bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center text-4xl">
-            🍳
+          <div className="w-full h-24 bg-gradient-to-br from-rose-100 to-pink-100 flex items-center justify-center">
+            <span className="text-3xl font-extrabold text-rose-300">{recipe.name[0].toUpperCase()}</span>
           </div>
         )}
         <div className="p-4">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="font-bold text-gray-900 text-base leading-snug">{recipe.name}</h3>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0 bg-rose-100 text-rose-700">
-              🍳
-            </span>
-          </div>
+          <h3 className="font-bold text-gray-900 text-base leading-snug mb-2">{recipe.name}</h3>
+
+          {/* Ingredients preview */}
+          {recipe.ingredients?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {recipe.ingredients.slice(0, 3).map((ing) => (
+                <span key={ing} className="px-2 py-0.5 bg-rose-50 text-rose-600 text-xs font-medium rounded-full border border-rose-100">
+                  {ing}
+                </span>
+              ))}
+              {recipe.ingredients.length > 3 && (
+                <span className="px-2 py-0.5 bg-gray-50 text-gray-400 text-xs font-medium rounded-full border border-gray-100">
+                  +{recipe.ingredients.length - 3}
+                </span>
+              )}
+            </div>
+          )}
+
           {recipe.description && (
             <p className="text-xs text-gray-400 line-clamp-2 mb-3 leading-relaxed">{recipe.description}</p>
           )}

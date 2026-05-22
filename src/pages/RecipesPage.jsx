@@ -9,6 +9,7 @@ export default function RecipesPage() {
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [search, setSearch] = useState('')
+  const [activeIngredient, setActiveIngredient] = useState(null)
 
   const fetchRecipes = async () => {
     const { data, error } = await supabase
@@ -28,14 +29,21 @@ export default function RecipesPage() {
     return () => channel.unsubscribe()
   }, [])
 
-  const displayed = recipes.filter((r) =>
-    r.name.toLowerCase().includes(search.toLowerCase())
-  )
+  // All unique ingredients across all recipes, sorted alphabetically
+  const allIngredients = [...new Set(
+    recipes.flatMap((r) => r.ingredients || [])
+  )].sort((a, b) => a.localeCompare(b))
+
+  const displayed = recipes
+    .filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((r) => !activeIngredient || r.ingredients?.includes(activeIngredient))
+
+  const hasFilters = search || activeIngredient
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-4 pb-28">
       {/* Search bar */}
-      <div className="relative mb-5">
+      <div className="relative mb-4">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         <input
           type="text"
@@ -54,25 +62,56 @@ export default function RecipesPage() {
         )}
       </div>
 
+      {/* Ingredient filter */}
+      {allIngredients.length > 0 && (
+        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+          {activeIngredient && (
+            <button
+              onClick={() => setActiveIngredient(null)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
+            >
+              <X size={12} /> Tout
+            </button>
+          )}
+          {allIngredients.map((ing) => (
+            <button
+              key={ing}
+              onClick={() => setActiveIngredient(activeIngredient === ing ? null : ing)}
+              className={`px-3 py-2 rounded-full text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all ${
+                activeIngredient === ing
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md scale-105'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-rose-300 hover:text-rose-600'
+              }`}
+            >
+              {ing}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-24">
           <div className="w-12 h-12 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin" />
         </div>
       ) : displayed.length === 0 ? (
         <div className="text-center py-24">
-          <div className="text-6xl mb-4">{search ? '🔍' : '👨‍🍳'}</div>
+          <div className="text-6xl mb-4">{hasFilters ? '🔍' : '👨‍🍳'}</div>
           <p className="text-gray-600 text-xl font-bold mb-1">
-            {search ? 'Aucun résultat' : 'Aucune recette encore'}
+            {hasFilters ? 'Aucun résultat' : 'Aucune recette encore'}
           </p>
           <p className="text-gray-400 text-sm">
-            {search ? `Aucune recette ne correspond à "${search}"` : 'Sois le premier à partager une recette !'}
+            {hasFilters
+              ? 'Essaie un autre ingrédient ou un autre nom'
+              : 'Sois le premier à partager une recette !'}
           </p>
         </div>
       ) : (
         <>
-          {search && (
+          {hasFilters && (
             <p className="text-xs text-gray-400 mb-3 font-medium">
-              {displayed.length} résultat{displayed.length > 1 ? 's' : ''} pour « {search} »
+              {displayed.length} recette{displayed.length > 1 ? 's' : ''}
+              {activeIngredient ? ` avec « ${activeIngredient} »` : ''}
+              {search ? ` correspondant à « ${search} »` : ''}
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
