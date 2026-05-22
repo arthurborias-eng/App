@@ -49,7 +49,7 @@ export default function AuthPage() {
             💑
           </div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight">À deux</h1>
-          <p className="text-white/70 mt-2 text-lg">Vos spots & recettes 🗺️</p>
+          <p className="text-white/70 mt-2 text-lg">Vos spots & recettes</p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
