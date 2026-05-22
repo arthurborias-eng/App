@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
-import { MapPin, UtensilsCrossed, LogOut } from 'lucide-react'
+import { MapPin, UtensilsCrossed, LogOut, Menu, X } from 'lucide-react'
 
 const AuthPage = lazy(() => import('./pages/AuthPage'))
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -15,59 +15,108 @@ function Spinner() {
   )
 }
 
+const NAV_ITEMS = [
+  { id: 'spots',    label: 'Nos spots',    icon: MapPin,          active: 'from-violet-600 to-indigo-600' },
+  { id: 'recettes', label: 'Nos recettes', icon: UtensilsCrossed, active: 'from-rose-500 to-pink-500' },
+]
+
 function MainApp() {
   const { user, logout } = useAuth()
   const [page, setPage] = useState('spots')
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const navigate = (id) => {
+    setPage(id)
+    setDrawerOpen(false)
+  }
+
+  const current = NAV_ITEMS.find((n) => n.id === page)
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-violet-600 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-white text-lg">💑</span>
+      {/* Backdrop */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* Drawer */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          drawerOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Drawer header */}
+        <div className="bg-gradient-to-br from-violet-600 to-pink-500 px-5 pt-12 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">💑</span>
+              <span className="font-extrabold text-white text-2xl tracking-tight">À deux</span>
             </div>
-            <span className="font-extrabold text-gray-900 text-xl tracking-tight">À deux</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1.5">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
-                {(user.displayName || user.email)[0].toUpperCase()}
-              </div>
-              <span className="text-sm font-medium text-gray-700">{user.displayName || user.email}</span>
-            </div>
-            <button onClick={logout} className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500" title="Déconnexion">
-              <LogOut size={18} />
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-colors text-white"
+            >
+              <X size={18} />
             </button>
+          </div>
+          <div className="flex items-center gap-2.5 bg-white/20 rounded-2xl px-3 py-2.5">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-violet-600 text-sm font-extrabold flex-shrink-0">
+              {(user.displayName || user.email)[0].toUpperCase()}
+            </div>
+            <span className="text-white text-sm font-semibold truncate">{user.displayName || user.email}</span>
           </div>
         </div>
 
-        {/* Tab navigation */}
-        <div className="max-w-4xl mx-auto px-4 pb-3">
-          <div className="flex rounded-2xl bg-gray-100 p-1 gap-1">
+        {/* Nav items */}
+        <nav className="flex-1 p-4 space-y-2">
+          {NAV_ITEMS.map(({ id, label, icon: Icon, active }) => (
             <button
-              onClick={() => setPage('spots')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                page === 'spots'
-                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-800'
+              key={id}
+              onClick={() => navigate(id)}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all ${
+                page === id
+                  ? `bg-gradient-to-r ${active} text-white shadow-md`
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <MapPin size={15} />
-              Nos spots
+              <Icon size={18} />
+              {label}
             </button>
-            <button
-              onClick={() => setPage('recettes')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                page === 'recettes'
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-800'
-              }`}
-            >
-              <UtensilsCrossed size={15} />
-              Nos recettes
-            </button>
+          ))}
+        </nav>
+
+        {/* Logout */}
+        <div className="p-4 border-t border-gray-100">
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <LogOut size={18} />
+            Déconnexion
+          </button>
+        </div>
+      </aside>
+
+      {/* Header */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-600 flex-shrink-0"
+          >
+            <Menu size={22} />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xl">💑</span>
+            <span className="font-extrabold text-gray-900 text-xl tracking-tight">À deux</span>
+          </div>
+          <div className="ml-auto">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${current.active} text-white`}>
+              {current.label}
+            </span>
           </div>
         </div>
       </header>
