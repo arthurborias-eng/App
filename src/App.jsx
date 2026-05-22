@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
-import { MapPin, UtensilsCrossed, Map, ShoppingCart, Home, CalendarDays, LogOut, Menu, X, Tv } from 'lucide-react'
+import { MapPin, UtensilsCrossed, Map, ShoppingCart, Home, CalendarDays, LogOut, Menu, X } from 'lucide-react'
 
 const AuthPage       = lazy(() => import('./pages/AuthPage'))
 const DashboardPage  = lazy(() => import('./pages/DashboardPage'))
@@ -10,7 +10,6 @@ const RecipesPage    = lazy(() => import('./pages/RecipesPage'))
 const PlanningPage   = lazy(() => import('./pages/PlanningPage'))
 const GlobalMapPage  = lazy(() => import('./pages/GlobalMapPage'))
 const ShoppingPage   = lazy(() => import('./pages/ShoppingPage'))
-const WatchlistPage  = lazy(() => import('./pages/WatchlistPage'))
 
 function Spinner() {
   return (
@@ -27,7 +26,6 @@ const NAV_ITEMS = [
   { id: 'planning', label: 'Planning',          icon: CalendarDays,    active: 'from-amber-500 to-orange-500'  },
   { id: 'carte',    label: 'Carte',             icon: Map,             active: 'from-blue-500 to-cyan-500'     },
   { id: 'courses',  label: 'Liste de courses',  icon: ShoppingCart,    active: 'from-emerald-500 to-teal-500'  },
-  { id: 'watchlist', label: 'Films & Séries',  icon: Tv,              active: 'from-indigo-600 to-violet-600'  },
 ]
 
 function MainApp() {
@@ -145,7 +143,6 @@ function MainApp() {
           {page === 'planning' && <PlanningPage />}
           {page === 'carte'    && <GlobalMapPage />}
           {page === 'courses'   && <ShoppingPage />}
-          {page === 'watchlist' && <WatchlistPage />}
         </Suspense>
       </div>
     </div>
