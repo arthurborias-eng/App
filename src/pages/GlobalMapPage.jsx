@@ -9,7 +9,7 @@ const TYPE_CONFIG = {
   restaurant: { emoji: '🍽️', color: '#f97316', label: 'Resto' },
   bar:        { emoji: '🍸', color: '#a855f7', label: 'Bar' },
   activite:   { emoji: '🎯', color: '#3b82f6', label: 'Activité' },
-  lieu:       { emoji: '📍', color: '#10b981', label: 'Lieu' },
+  lieu:       { emoji: '📍', color: '#10b981', label: 'Visites' },
   autre:      { emoji: '✨', color: '#6b7280', label: 'Autre' },
 }
 

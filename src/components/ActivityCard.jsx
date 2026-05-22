@@ -17,7 +17,7 @@ const TYPE_STYLES = {
 }
 
 const TYPE_LABELS = {
-  restaurant: 'Restaurant', bar: 'Bar', activite: 'Activité', lieu: 'Lieu', autre: 'Autre',
+  restaurant: 'Restaurant', bar: 'Bar', activite: 'Activité', lieu: 'Visites', autre: 'Autre',
 }
 
 function DetailModal({ activity, onClose }) {

@@ -59,7 +59,7 @@ export default function DoneMap({ activities }) {
           <span key={type} className="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm">
             <span>{cfg.emoji}</span>
             <span style={{ color: cfg.color }} className="font-semibold capitalize">
-              {{ restaurant: 'Resto', bar: 'Bar', activite: 'Activité', lieu: 'Lieu', autre: 'Autre' }[type]}
+              {{ restaurant: 'Resto', bar: 'Bar', activite: 'Activité', lieu: 'Visites', autre: 'Autre' }[type]}
             </span>
           </span>
         ))}

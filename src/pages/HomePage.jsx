@@ -6,7 +6,7 @@ import AddActivityModal from '../components/AddActivityModal'
 import { Plus, CheckCircle2, Clock, Search, X } from 'lucide-react'
 
 const TYPES = ['all', 'restaurant', 'bar', 'activite', 'lieu', 'autre']
-const TYPE_LABELS = { all: '🗺️ Tout', restaurant: '🍽️ Resto', bar: '🍸 Bar', activite: '🎯 Activité', lieu: '📍 Lieu', autre: '✨ Autre' }
+const TYPE_LABELS = { all: '🗺️ Tout', restaurant: '🍽️ Resto', bar: '🍸 Bar', activite: '🎯 Activité', lieu: '📍 Visites', autre: '✨ Autre' }
 const TYPE_COLORS = {
   all: 'from-violet-500 to-indigo-500',
   restaurant: 'from-orange-500 to-red-500',

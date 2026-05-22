@@ -11,7 +11,7 @@ const TYPES = [
   { value: 'restaurant', label: '🍽️ Restaurant' },
   { value: 'bar', label: '🍸 Bar' },
   { value: 'activite', label: '🎯 Activité' },
-  { value: 'lieu', label: '📍 Lieu' },
+  { value: 'lieu', label: '📍 Visites' },
   { value: 'autre', label: '✨ Autre' },
 ]
 
