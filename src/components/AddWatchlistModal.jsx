@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { X, Search, Tv, Film, Loader2 } from 'lucide-react'
 
-const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY || 'ea03a30512bd3b271620d780ab2f053e'
+const TMDB_KEY = 'ea03a30512bd3b271620d780ab2f053e'
 const TMDB_IMG = 'https://image.tmdb.org/t/p/w200'
 
 const PLATFORMS = ['Netflix', 'Disney+', 'Prime Video', 'Apple TV+', 'Canal+', 'OCS', 'Salto', 'Autre']
@@ -25,15 +25,16 @@ export default function AddWatchlistModal({ onClose }) {
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
       try {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=fr-FR&page=1`
-        )
+        const url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=fr-FR&page=1`
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         const filtered = (data.results || [])
           .filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
           .slice(0, 6)
         setResults(filtered)
-      } catch { toast.error('Erreur de recherche') }
+        if (filtered.length === 0) toast('Aucun résultat pour "' + query + '"', { icon: '🔍' })
+      } catch (err) { toast.error('Erreur recherche : ' + err.message) }
       finally { setSearching(false) }
     }, 400)
   }, [query])
