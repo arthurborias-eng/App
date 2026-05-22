@@ -43,14 +43,16 @@ async function uploadToImgbb(file) {
   return data.data.url
 }
 
-export default function AddActivityModal({ onClose }) {
+export default function AddActivityModal({ onClose, existing }) {
   const { user } = useAuth()
-  const [name, setName] = useState('')
-  const [type, setType] = useState('restaurant')
-  const [description, setDescription] = useState('')
-  const [position, setPosition] = useState(null)
+  const isEdit = !!existing
+
+  const [name, setName] = useState(existing?.name || '')
+  const [type, setType] = useState(existing?.type || 'restaurant')
+  const [description, setDescription] = useState(existing?.description || '')
+  const [position, setPosition] = useState(existing?.position || null)
   const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  const [imagePreview, setImagePreview] = useState(existing?.image_url || null)
   const [loading, setLoading] = useState(false)
 
   const handleImage = (e) => {
@@ -68,19 +70,31 @@ export default function AddActivityModal({ onClose }) {
     if (!position) { toast.error('Indique la localisation'); return }
     setLoading(true)
     try {
-      const image_url = imageFile ? await uploadToImgbb(imageFile) : null
-      const { error } = await supabase.from('activities').insert({
-        name: name.trim(),
-        type,
-        description: description.trim(),
-        position,
-        image_url,
-        added_by: user.displayName,
-        added_by_uid: user.uid,
-        done: false,
-      })
-      if (error) throw error
-      toast.success('Activité ajoutée !')
+      const image_url = imageFile ? await uploadToImgbb(imageFile) : (existing?.image_url || null)
+      if (isEdit) {
+        const { error } = await supabase.from('activities').update({
+          name: name.trim(),
+          type,
+          description: description.trim(),
+          position,
+          image_url,
+        }).eq('id', existing.id)
+        if (error) throw error
+        toast.success('Activité modifiée !')
+      } else {
+        const { error } = await supabase.from('activities').insert({
+          name: name.trim(),
+          type,
+          description: description.trim(),
+          position,
+          image_url,
+          added_by: user.displayName,
+          added_by_uid: user.uid,
+          done: false,
+        })
+        if (error) throw error
+        toast.success('Activité ajoutée !')
+      }
       onClose()
     } catch (err) {
       toast.error('Erreur : ' + err.message)
@@ -92,7 +106,7 @@ export default function AddActivityModal({ onClose }) {
     <div className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm flex flex-col sm:items-center sm:justify-center sm:p-4">
       <div className="bg-white flex flex-col w-full h-full sm:h-auto sm:rounded-3xl sm:max-w-lg sm:shadow-2xl sm:max-h-[90vh]">
         <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-4 flex items-center justify-between flex-shrink-0">
-          <h2 className="text-lg font-bold text-white">Ajouter un endroit</h2>
+          <h2 className="text-lg font-bold text-white">{isEdit ? 'Modifier le spot' : 'Ajouter un endroit'}</h2>
           <button onClick={onClose} className="p-2 rounded-xl bg-white/20 hover:bg-white/30 transition-colors text-white">
             <X size={18} />
           </button>
@@ -180,7 +194,7 @@ export default function AddActivityModal({ onClose }) {
                 Annuler
               </button>
               <button type="submit" disabled={loading} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 disabled:opacity-60 text-white font-bold shadow-md">
-                {loading ? 'Envoi…' : 'Ajouter ✨'}
+                {loading ? 'Envoi…' : isEdit ? 'Enregistrer' : 'Ajouter ✨'}
               </button>
             </div>
           </form>

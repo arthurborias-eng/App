@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import StarRating from './StarRating'
+import AddRecipeModal from './AddRecipeModal'
 import toast from 'react-hot-toast'
-import { User, X, MessageSquare, Trash2 } from 'lucide-react'
+import { User, X, MessageSquare, Trash2, Pencil } from 'lucide-react'
 
 function RecipeDetailModal({ recipe, onClose }) {
   const { user } = useAuth()
@@ -11,6 +12,7 @@ function RecipeDetailModal({ recipe, onClose }) {
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const userRating = recipe.ratings?.find((r) => r.uid === user.uid)
   const isOwner = recipe.added_by_uid === user.uid
@@ -46,6 +48,10 @@ function RecipeDetailModal({ recipe, onClose }) {
       onClose()
     } catch (err) { toast.error(err.message) }
     finally { setSubmitting(false) }
+  }
+
+  if (editing) {
+    return <AddRecipeModal existing={recipe} onClose={() => { setEditing(false); onClose() }} />
   }
 
   return (
@@ -162,15 +168,24 @@ function RecipeDetailModal({ recipe, onClose }) {
               )}
             </div>
 
-            {/* Delete */}
+            {/* Edit / Delete */}
             {isOwner && !confirmDelete && (
-              <button
-                onClick={() => setConfirmDelete(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors border border-dashed border-red-200 hover:border-red-300"
-              >
-                <Trash2 size={14} />
-                Supprimer cette recette
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setEditing(true)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm text-violet-500 hover:text-violet-700 hover:bg-violet-50 rounded-2xl transition-colors border border-dashed border-violet-200 hover:border-violet-300"
+                >
+                  <Pencil size={14} />
+                  Modifier
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors border border-dashed border-red-200 hover:border-red-300"
+                >
+                  <Trash2 size={14} />
+                  Supprimer
+                </button>
+              </div>
             )}
             {isOwner && confirmDelete && (
               <div className="bg-red-50 rounded-2xl p-4 space-y-3">
@@ -249,6 +264,7 @@ export default function RecipeCard({ recipe }) {
         </div>
       </div>
       {open && <RecipeDetailModal recipe={recipe} onClose={() => setOpen(false)} />}
+      {/* editing state is inside the modal, handled via AddRecipeModal rendered from there */}
     </>
   )
 }

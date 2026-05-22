@@ -2,8 +2,9 @@ import { useState, lazy, Suspense } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import StarRating from './StarRating'
+import AddActivityModal from './AddActivityModal'
 import toast from 'react-hot-toast'
-import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import { MapPin, User, CheckCircle, X, MessageSquare, ChevronDown, ChevronUp, Trash2, Pencil } from 'lucide-react'
 
 const MapPicker = lazy(() => import('./MapPicker'))
 
@@ -26,6 +27,7 @@ function DetailModal({ activity, onClose }) {
   const [submitting, setSubmitting] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const style = TYPE_STYLES[activity.type] || TYPE_STYLES.autre
   const userRating = activity.ratings?.find((r) => r.uid === user.uid)
@@ -71,6 +73,10 @@ function DetailModal({ activity, onClose }) {
       onClose()
     } catch (err) { toast.error(err.message) }
     finally { setSubmitting(false) }
+  }
+
+  if (editing) {
+    return <AddActivityModal existing={activity} onClose={() => { setEditing(false); onClose() }} />
   }
 
   return (
@@ -199,13 +205,22 @@ function DetailModal({ activity, onClose }) {
           )}
 
           {isOwner && !confirmDelete && (
-            <button
-              onClick={() => setConfirmDelete(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors border border-dashed border-red-200 hover:border-red-300"
-            >
-              <Trash2 size={14} />
-              Supprimer cette activité
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditing(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm text-violet-500 hover:text-violet-700 hover:bg-violet-50 rounded-2xl transition-colors border border-dashed border-violet-200 hover:border-violet-300"
+              >
+                <Pencil size={14} />
+                Modifier
+              </button>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors border border-dashed border-red-200 hover:border-red-300"
+              >
+                <Trash2 size={14} />
+                Supprimer
+              </button>
+            </div>
           )}
           {isOwner && confirmDelete && (
             <div className="bg-red-50 rounded-2xl p-4 space-y-3">
