@@ -1,13 +1,15 @@
 import { lazy, Suspense, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Toaster } from 'react-hot-toast'
-import { MapPin, UtensilsCrossed, Map, ShoppingCart, LogOut, Menu, X } from 'lucide-react'
+import { MapPin, UtensilsCrossed, Map, ShoppingCart, Home, CalendarDays, LogOut, Menu, X } from 'lucide-react'
 
-const AuthPage      = lazy(() => import('./pages/AuthPage'))
-const HomePage      = lazy(() => import('./pages/HomePage'))
-const RecipesPage   = lazy(() => import('./pages/RecipesPage'))
-const GlobalMapPage = lazy(() => import('./pages/GlobalMapPage'))
-const ShoppingPage  = lazy(() => import('./pages/ShoppingPage'))
+const AuthPage       = lazy(() => import('./pages/AuthPage'))
+const DashboardPage  = lazy(() => import('./pages/DashboardPage'))
+const HomePage       = lazy(() => import('./pages/HomePage'))
+const RecipesPage    = lazy(() => import('./pages/RecipesPage'))
+const PlanningPage   = lazy(() => import('./pages/PlanningPage'))
+const GlobalMapPage  = lazy(() => import('./pages/GlobalMapPage'))
+const ShoppingPage   = lazy(() => import('./pages/ShoppingPage'))
 
 function Spinner() {
   return (
@@ -18,15 +20,17 @@ function Spinner() {
 }
 
 const NAV_ITEMS = [
-  { id: 'spots',    label: 'Nos spots',       icon: MapPin,          active: 'from-violet-600 to-indigo-600' },
-  { id: 'recettes', label: 'Nos recettes',    icon: UtensilsCrossed, active: 'from-rose-500 to-pink-500'     },
-  { id: 'carte',    label: 'Carte',            icon: Map,             active: 'from-blue-500 to-cyan-500'     },
-  { id: 'courses',  label: 'Liste de courses',icon: ShoppingCart,    active: 'from-emerald-500 to-teal-500'  },
+  { id: 'home',     label: 'Accueil',          icon: Home,            active: 'from-violet-600 to-indigo-600' },
+  { id: 'spots',    label: 'Nos spots',         icon: MapPin,          active: 'from-violet-600 to-indigo-600' },
+  { id: 'recettes', label: 'Nos recettes',      icon: UtensilsCrossed, active: 'from-rose-500 to-pink-500'     },
+  { id: 'planning', label: 'Planning',          icon: CalendarDays,    active: 'from-amber-500 to-orange-500'  },
+  { id: 'carte',    label: 'Carte',             icon: Map,             active: 'from-blue-500 to-cyan-500'     },
+  { id: 'courses',  label: 'Liste de courses',  icon: ShoppingCart,    active: 'from-emerald-500 to-teal-500'  },
 ]
 
 function MainApp() {
   const { user, logout } = useAuth()
-  const [page, setPage] = useState('spots')
+  const [page, setPage] = useState('home')
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const navigate = (id) => {
@@ -131,8 +135,10 @@ function MainApp() {
             <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
           </div>
         }>
+          {page === 'home'     && <DashboardPage navigate={navigate} />}
           {page === 'spots'    && <HomePage />}
           {page === 'recettes' && <RecipesPage />}
+          {page === 'planning' && <PlanningPage />}
           {page === 'carte'    && <GlobalMapPage />}
           {page === 'courses'  && <ShoppingPage />}
         </Suspense>

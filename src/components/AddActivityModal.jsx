@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
 import ImageCropModal from './ImageCropModal'
 import toast from 'react-hot-toast'
-import { X, Upload, MapPin } from 'lucide-react'
+import { X, Upload, MapPin, CalendarDays } from 'lucide-react'
 
 const MapPicker = lazy(() => import('./MapPicker'))
 
@@ -51,6 +51,7 @@ export default function AddActivityModal({ onClose, existing }) {
   const [name, setName] = useState(existing?.name || '')
   const [type, setType] = useState(existing?.type || 'restaurant')
   const [description, setDescription] = useState(existing?.description || '')
+  const [plannedDate, setPlannedDate] = useState(existing?.planned_date || '')
   const [position, setPosition] = useState(existing?.position || null)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(existing?.image_url || null)
@@ -83,6 +84,7 @@ export default function AddActivityModal({ onClose, existing }) {
           name: name.trim(),
           type,
           description: description.trim(),
+          planned_date: plannedDate || null,
           position,
           image_url,
         }).eq('id', existing.id)
@@ -93,6 +95,7 @@ export default function AddActivityModal({ onClose, existing }) {
           name: name.trim(),
           type,
           description: description.trim(),
+          planned_date: plannedDate || null,
           position,
           image_url,
           added_by: user.displayName,
@@ -169,6 +172,19 @@ export default function AddActivityModal({ onClose, existing }) {
                 rows={2}
                 placeholder="Quelques mots pour décrire cet endroit…"
                 className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-violet-400 text-gray-900 bg-gray-50 resize-none text-base"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+                <CalendarDays size={14} className="text-amber-500" />
+                Date prévue (optionnel)
+              </label>
+              <input
+                type="date"
+                value={plannedDate}
+                onChange={(e) => setPlannedDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-violet-400 text-gray-900 bg-gray-50 text-base"
               />
             </div>
 
