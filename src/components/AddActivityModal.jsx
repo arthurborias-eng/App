@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../context/AuthContext'
+import ImageCropModal from './ImageCropModal'
 import toast from 'react-hot-toast'
 import { X, Upload, MapPin } from 'lucide-react'
 
@@ -53,6 +54,7 @@ export default function AddActivityModal({ onClose, existing }) {
   const [position, setPosition] = useState(existing?.position || null)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(existing?.image_url || null)
+  const [cropSrc, setCropSrc] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleImage = (e) => {
@@ -60,8 +62,13 @@ export default function AddActivityModal({ onClose, existing }) {
     if (!file) return
     if (!file.type.startsWith('image/')) { toast.error('Sélectionne une image (JPG, PNG…)'); return }
     if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (10 MB max)'); return }
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
+    setCropSrc(URL.createObjectURL(file))
+  }
+
+  const handleCropConfirm = (blob, preview) => {
+    setImageFile(blob)
+    setImagePreview(preview)
+    setCropSrc(null)
   }
 
   const handleSubmit = async (e) => {
@@ -100,6 +107,17 @@ export default function AddActivityModal({ onClose, existing }) {
       toast.error('Erreur : ' + err.message)
       setLoading(false)
     }
+  }
+
+  if (cropSrc) {
+    return (
+      <ImageCropModal
+        imageSrc={cropSrc}
+        aspect={4 / 3}
+        onConfirm={handleCropConfirm}
+        onCancel={() => setCropSrc(null)}
+      />
+    )
   }
 
   return (
