@@ -140,9 +140,24 @@ function RecipeDetailModal({ recipe, onClose }) {
                 </div>
               )}
 
-              {(!userRating || editingRating) ? (
+              {!userRating ? (
                 <form onSubmit={handleRate} className="space-y-3 bg-rose-50 rounded-2xl p-4">
-                  <h3 className="font-bold text-gray-900">{userRating ? 'Modifier ton avis' : 'Ton avis'}</h3>
+                  <h3 className="font-bold text-gray-900">Ton avis</h3>
+                  <StarRating value={rating} onChange={setRating} size={30} />
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    placeholder="Ton commentaire (optionnel)…"
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-rose-100 focus:outline-none focus:border-rose-400 text-gray-900 resize-none text-sm bg-white"
+                  />
+                  <button type="submit" disabled={submitting} className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-500 disabled:opacity-60 text-white font-bold rounded-xl shadow transition-all">
+                    {submitting ? 'Envoi…' : 'Envoyer mon avis ⭐'}
+                  </button>
+                </form>
+              ) : editingRating ? (
+                <form onSubmit={handleRate} className="space-y-3 bg-rose-50 rounded-2xl p-4">
+                  <h3 className="font-bold text-gray-900">Modifier ton avis</h3>
                   <StarRating value={rating} onChange={setRating} size={30} />
                   <textarea
                     value={comment}
@@ -152,29 +167,24 @@ function RecipeDetailModal({ recipe, onClose }) {
                     className="w-full px-4 py-2.5 rounded-xl border-2 border-rose-100 focus:outline-none focus:border-rose-400 text-gray-900 resize-none text-sm bg-white"
                   />
                   <div className="flex gap-2">
-                    {editingRating && (
-                      <button type="button" onClick={() => setEditingRating(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold">
-                        Annuler
-                      </button>
-                    )}
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="flex-1 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 disabled:opacity-60 text-white font-bold rounded-xl shadow transition-all"
-                    >
-                      {submitting ? 'Envoi…' : userRating ? 'Mettre à jour' : 'Envoyer mon avis ⭐'}
+                    <button type="button" onClick={() => setEditingRating(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold">Annuler</button>
+                    <button type="submit" disabled={submitting} className="flex-1 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 disabled:opacity-60 text-white font-bold rounded-xl shadow transition-all">
+                      {submitting ? 'Envoi…' : 'Mettre à jour'}
                     </button>
                   </div>
                 </form>
               ) : (
-                <div className="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <StarRating value={userRating.value} readonly size={14} />
-                    <span className="text-xs text-gray-400">{userRating.comment || ''}</span>
+                <div className="bg-gray-50 rounded-2xl p-3.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold text-gray-900">Ton avis</span>
+                    <div className="flex items-center gap-2">
+                      <StarRating value={userRating.value} readonly size={14} />
+                      <button onClick={() => { setRating(userRating.value); setComment(userRating.comment || ''); setEditingRating(true) }} className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors">
+                        <Pencil size={13} />
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => { setRating(userRating.value); setComment(userRating.comment || ''); setEditingRating(true) }} className="text-xs text-rose-500 font-semibold hover:text-rose-700 transition-colors flex-shrink-0 ml-2">
-                    Modifier
-                  </button>
+                  {userRating.comment && <p className="text-sm text-gray-500">{userRating.comment}</p>}
                 </div>
               )}
             </div>
