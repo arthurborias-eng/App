@@ -22,17 +22,63 @@ function RecipeDetailModal({ recipe, onClose }) {
     ? (recipe.ratings.reduce((s, r) => s + r.value, 0) / recipe.ratings.length).toFixed(1)
     : null
 
+  const formatIngredient = (ing) => {
+    if (typeof ing === 'string') return ing
+    if (!ing.quantity) return ing.name
+    if (ing.unit === 'pcs') return `${ing.quantity} × ${ing.name}`
+    return `${ing.quantity} ${ing.unit} ${ing.name}`
+  }
+
   const handleAddToShopping = async () => {
     if (!recipe.ingredients?.length) { toast.error('Aucun ingrédient à ajouter'); return }
-    const rows = recipe.ingredients.map((ing) => ({
-      text: ing,
-      checked: false,
-      added_by: user.displayName,
-      added_by_uid: user.uid,
-    }))
-    const { error } = await supabase.from('shopping_list').insert(rows)
-    if (error) toast.error('Erreur')
-    else toast.success(`${rows.length} ingrédient${rows.length > 1 ? 's' : ''} ajouté${rows.length > 1 ? 's' : ''} à la liste 🛒`)
+
+    // Récupère les articles non-cochés pour fusionner
+    const { data: existing } = await supabase.from('shopping_list').select('*').eq('checked', false)
+
+    const updates = []
+    const inserts = []
+
+    for (const ing of recipe.ingredients) {
+      const ingName = typeof ing === 'string' ? ing : ing.name
+      const qty     = typeof ing === 'string' ? null : ing.quantity
+      const unit    = typeof ing === 'string' ? null : ing.unit
+      const key     = ingName.toLowerCase().trim()
+
+      // Cherche un article existant avec le même ingrédient ET la même unité
+      const match = qty !== null
+        ? (existing || []).find((e) => e.ingredient_name === key && e.unit === unit && e.quantity !== null)
+        : null
+
+      if (match) {
+        const newQty  = match.quantity + qty
+        const newText = unit === 'pcs' ? `${newQty} × ${ingName}` : `${newQty} ${unit} ${ingName}`
+        updates.push({ id: match.id, quantity: newQty, text: newText })
+      } else {
+        inserts.push({
+          text: formatIngredient(ing),
+          ingredient_name: key,
+          quantity: qty,
+          unit,
+          checked: false,
+          added_by: user.displayName,
+          added_by_uid: user.uid,
+        })
+      }
+    }
+
+    const results = await Promise.all([
+      ...updates.map((u) => supabase.from('shopping_list').update({ quantity: u.quantity, text: u.text }).eq('id', u.id)),
+      ...(inserts.length ? [supabase.from('shopping_list').insert(inserts)] : []),
+    ])
+
+    if (results.some((r) => r.error)) {
+      toast.error('Erreur lors de l\'ajout')
+    } else {
+      const msg = updates.length > 0
+        ? `${inserts.length} ajouté${inserts.length > 1 ? 's' : ''}, ${updates.length} cumulé${updates.length > 1 ? 's' : ''} 🛒`
+        : `${inserts.length} ingrédient${inserts.length > 1 ? 's' : ''} ajouté${inserts.length > 1 ? 's' : ''} à la liste 🛒`
+      toast.success(msg)
+    }
   }
 
   const handleDelete = async () => {
@@ -125,9 +171,9 @@ function RecipeDetailModal({ recipe, onClose }) {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {recipe.ingredients.map((ing) => (
-                    <span key={ing} className="px-3 py-1 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
-                      {ing}
+                  {recipe.ingredients.map((ing, i) => (
+                    <span key={i} className="px-3 py-1 bg-rose-50 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
+                      {formatIngredient(ing)}
                     </span>
                   ))}
                 </div>
@@ -278,9 +324,9 @@ export default function RecipeCard({ recipe }) {
           {/* Ingredients preview */}
           {recipe.ingredients?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {recipe.ingredients.slice(0, 3).map((ing) => (
-                <span key={ing} className="px-2 py-0.5 bg-rose-50 text-rose-600 text-xs font-medium rounded-full border border-rose-100">
-                  {ing}
+              {recipe.ingredients.slice(0, 3).map((ing, i) => (
+                <span key={i} className="px-2 py-0.5 bg-rose-50 text-rose-600 text-xs font-medium rounded-full border border-rose-100">
+                  {typeof ing === 'string' ? ing : ing.name}
                 </span>
               ))}
               {recipe.ingredients.length > 3 && (

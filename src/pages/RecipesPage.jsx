@@ -29,12 +29,13 @@ export default function RecipesPage() {
   }, [])
 
   const q = search.toLowerCase().trim()
+  const ingName = (ing) => (typeof ing === 'string' ? ing : ing.name).toLowerCase()
+
   const displayed = recipes.filter((r) =>
     r.name.toLowerCase().includes(q) ||
-    r.ingredients?.some((ing) => ing.toLowerCase().includes(q))
+    r.ingredients?.some((ing) => ingName(ing).includes(q))
   )
 
-  // Which ingredients from all recipes match the search (but not by name)
   const matchedByIngredient = q
     ? displayed.filter((r) => !r.name.toLowerCase().includes(q))
     : []

@@ -40,22 +40,37 @@ export default function AddRecipeModal({ onClose, existing }) {
 
   const [name, setName] = useState(existing?.name || '')
   const [description, setDescription] = useState(existing?.description || '')
-  const [ingredients, setIngredients] = useState(existing?.ingredients || [])
-  const [ingredientInput, setIngredientInput] = useState('')
+  // Normalise les anciens ingrédients (strings) en objets
+  const normalizeIngs = (ings) => (ings || []).map((i) => typeof i === 'string' ? { name: i, quantity: null, unit: null } : i)
+  const [ingredients, setIngredients] = useState(normalizeIngs(existing?.ingredients))
+  const [ingName, setIngName] = useState('')
+  const [ingQty, setIngQty] = useState('')
+  const [ingUnit, setIngUnit] = useState('g')
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(existing?.image_url || null)
   const [cropSrc, setCropSrc] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const addIngredient = () => {
-    const val = ingredientInput.trim()
-    if (!val) return
-    if (ingredients.includes(val)) { toast.error('Ingrédient déjà ajouté'); return }
-    setIngredients([...ingredients, val])
-    setIngredientInput('')
+  const formatIngredient = (ing) => {
+    if (typeof ing === 'string') return ing
+    if (!ing.quantity) return ing.name
+    if (ing.unit === 'pcs') return `${ing.quantity} × ${ing.name}`
+    return `${ing.quantity} ${ing.unit} ${ing.name}`
   }
 
-  const removeIngredient = (ing) => setIngredients(ingredients.filter((i) => i !== ing))
+  const addIngredient = () => {
+    const name = ingName.trim()
+    if (!name) return
+    const qty = ingQty === '' ? null : parseFloat(ingQty)
+    if (ingQty !== '' && (isNaN(qty) || qty <= 0)) { toast.error('Quantité invalide'); return }
+    const dup = ingredients.find((i) => (typeof i === 'string' ? i : i.name).toLowerCase() === name.toLowerCase())
+    if (dup) { toast.error('Ingrédient déjà ajouté'); return }
+    setIngredients([...ingredients, { name, quantity: qty, unit: qty !== null ? ingUnit : null }])
+    setIngName('')
+    setIngQty('')
+  }
+
+  const removeIngredient = (idx) => setIngredients(ingredients.filter((_, i) => i !== idx))
 
   const handleIngredientKey = (e) => {
     if (e.key === 'Enter') { e.preventDefault(); addIngredient() }
@@ -148,12 +163,33 @@ export default function AddRecipeModal({ onClose, existing }) {
               <div className="flex gap-2 mb-2">
                 <input
                   type="text"
-                  value={ingredientInput}
-                  onChange={(e) => setIngredientInput(e.target.value)}
+                  value={ingName}
+                  onChange={(e) => setIngName(e.target.value)}
                   onKeyDown={handleIngredientKey}
-                  placeholder="Ex: farine, œufs, beurre…"
-                  className="flex-1 px-4 py-2.5 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-rose-400 text-gray-900 bg-gray-50 text-sm"
+                  placeholder="Nom (ex: poulet)"
+                  className="flex-1 min-w-0 px-3 py-2.5 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-rose-400 text-gray-900 bg-gray-50 text-sm"
                 />
+                <input
+                  type="number"
+                  value={ingQty}
+                  onChange={(e) => setIngQty(e.target.value)}
+                  onKeyDown={handleIngredientKey}
+                  placeholder="Qté"
+                  min="0"
+                  step="any"
+                  className="w-16 px-2 py-2.5 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-rose-400 text-gray-900 bg-gray-50 text-sm text-center"
+                />
+                <select
+                  value={ingUnit}
+                  onChange={(e) => setIngUnit(e.target.value)}
+                  className="px-2 py-2.5 rounded-2xl border-2 border-gray-100 focus:outline-none focus:border-rose-400 text-gray-900 bg-gray-50 text-sm"
+                >
+                  <option value="g">g</option>
+                  <option value="kg">kg</option>
+                  <option value="ml">ml</option>
+                  <option value="L">L</option>
+                  <option value="pcs">pcs</option>
+                </select>
                 <button
                   type="button"
                   onClick={addIngredient}
@@ -164,17 +200,17 @@ export default function AddRecipeModal({ onClose, existing }) {
               </div>
               {ingredients.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {ingredients.map((ing) => (
-                    <span key={ing} className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 text-sm font-medium rounded-full border border-rose-200">
-                      {ing}
-                      <button type="button" onClick={() => removeIngredient(ing)} className="hover:text-rose-900 transition-colors">
+                  {ingredients.map((ing, idx) => (
+                    <span key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 text-sm font-medium rounded-full border border-rose-200">
+                      {formatIngredient(ing)}
+                      <button type="button" onClick={() => removeIngredient(idx)} className="hover:text-rose-900 transition-colors">
                         <X size={12} />
                       </button>
                     </span>
                   ))}
                 </div>
               )}
-              <p className="text-xs text-gray-400 mt-1.5">Appuie sur Entrée ou + pour ajouter</p>
+              <p className="text-xs text-gray-400 mt-1.5">La quantité est optionnelle · Entrée ou + pour ajouter</p>
             </div>
 
             <div>
