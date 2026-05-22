@@ -56,6 +56,16 @@ function DetailModal({ activity, onClose }) {
     } catch { toast.error('Erreur lors de la suppression') }
   }
 
+  const handleDeleteRating = async () => {
+    try {
+      const newRatings = (activity.ratings || []).filter((r) => r.uid !== user.uid)
+      const { error } = await supabase.from('activities').update({ ratings: newRatings }).eq('id', activity.id)
+      if (error) throw error
+      toast.success('Avis supprimé')
+      onClose()
+    } catch (err) { toast.error(err.message) }
+  }
+
   const handleRate = async (e) => {
     e.preventDefault()
     if (rating === 0) { toast.error('Choisis une note'); return }
@@ -172,12 +182,20 @@ function DetailModal({ activity, onClose }) {
                           <div className="flex items-center gap-2">
                             <StarRating value={r.value} readonly size={14} />
                             {isOwnerRating && (
-                              <button
-                                onClick={() => { setRating(r.value); setComment(r.comment || ''); setEditingRating(true) }}
-                                className="p-1.5 rounded-lg hover:bg-violet-100 text-violet-400 hover:text-violet-600 transition-colors"
-                              >
-                                <Pencil size={13} />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => { setRating(r.value); setComment(r.comment || ''); setEditingRating(true) }}
+                                  className="p-1.5 rounded-lg hover:bg-violet-100 text-violet-400 hover:text-violet-600 transition-colors"
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  onClick={handleDeleteRating}
+                                  className="p-1.5 rounded-lg hover:bg-red-100 text-red-300 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>

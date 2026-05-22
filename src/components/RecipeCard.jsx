@@ -90,6 +90,16 @@ function RecipeDetailModal({ recipe, onClose }) {
     } catch { toast.error('Erreur lors de la suppression') }
   }
 
+  const handleDeleteRating = async () => {
+    try {
+      const newRatings = (recipe.ratings || []).filter((r) => r.uid !== user.uid)
+      const { error } = await supabase.from('recipes').update({ ratings: newRatings }).eq('id', recipe.id)
+      if (error) throw error
+      toast.success('Avis supprimé')
+      onClose()
+    } catch (err) { toast.error(err.message) }
+  }
+
   const handleRate = async (e) => {
     e.preventDefault()
     if (rating === 0) { toast.error('Choisis une note'); return }
@@ -205,12 +215,20 @@ function RecipeDetailModal({ recipe, onClose }) {
                           <div className="flex items-center gap-2">
                             <StarRating value={r.value} readonly size={14} />
                             {isOwnerRating && (
-                              <button
-                                onClick={() => { setRating(r.value); setComment(r.comment || ''); setEditingRating(true) }}
-                                className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors"
-                              >
-                                <Pencil size={13} />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => { setRating(r.value); setComment(r.comment || ''); setEditingRating(true) }}
+                                  className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors"
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  onClick={handleDeleteRating}
+                                  className="p-1.5 rounded-lg hover:bg-red-100 text-red-300 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
