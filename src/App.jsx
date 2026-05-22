@@ -52,8 +52,7 @@ function MainApp() {
         <div className="bg-gradient-to-br from-violet-600 to-pink-500 px-5 pt-12 pb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🌍</span>
-              <span className="font-extrabold text-white text-2xl tracking-tight">À deux</span>
+              <span className="font-extrabold text-white text-2xl tracking-tight">Duo</span>
             </div>
             <button
               onClick={() => setDrawerOpen(false)}
@@ -110,8 +109,8 @@ function MainApp() {
             <Menu size={22} />
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-xl">🌍</span>
-            <span className="font-extrabold text-gray-900 text-xl tracking-tight">À deux</span>
+            <img src="/favicon.svg" alt="Duo" className="w-7 h-7 rounded-lg" />
+            <span className="font-extrabold text-gray-900 text-xl tracking-tight">Duo</span>
           </div>
           <div className="ml-auto">
             <span className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${current.active} text-white`}>
